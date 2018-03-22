@@ -1,0 +1,87 @@
+#!/bin/bash
+VPNBOOKPAGE="http://www.vpnbook.com/#pptpvpn"
+WORKDIR="/tmp/"
+HTMLFILE="vpnhtml.txt"
+PASSANCOR="Password:"
+VPNBOOKPASS=""
+FILEPASS=""
+VPNBOOKLOGIN="vpnbook"
+PEERSDIR="/etc/ppp/peers/"
+PEERSFILES[0]="vpnbook-e214"
+PEERSFILES[1]="vpnbook-e217"
+PEERSFILES[2]="vpnbook-de233"
+PEERSFILES[3]="vpnbook-us1"
+PEERSFILES[4]="vpnbook-us2"
+PEERSFILES[5]="vpnbook-ca1"
+SIMPLEFILES[0]="/myfiles/openvpn/configs/vpnbook.auth"
+
+
+passwork()
+{
+    echo -n "Checking $1..."
+    if [ -e $1 ]; then #file exist
+    	COUNT=`cat $1|grep "password" -c`
+	if [ $COUNT -eq 1 ]; then # strochek s parolem 1
+	    #vitaskivaem password i udalyaem kavichki
+	    FILEPASS=`cat $1|grep "password"|awk ' {print $2} '|sed 's/\"//g'`
+	    echo -n "password "$FILEPASS
+	    
+	    if [ "$FILEPASS" = "$VPNBOOKPASS" ]; then #proverka parolya
+		echo " not replaced."
+	    else
+		#backup file
+		cp $1 $1".bak"
+		echo "...file backuped..."
+		sed -i 's/'$FILEPASS'/'$VPNBOOKPASS'/g' $1 #replace password
+		echo "...replaced!"
+	    fi
+	    
+	else #>1 ili 0
+	    echo  " Peer file format error"
+	fi
+    else
+    
+	echo  " $1 not found"
+    fi
+}
+
+simplework()
+{
+    echo $1
+    cp "$1" "$1"".bak"
+    echo "$VPNBOOKLOGIN">$1
+    echo "$VPNBOOKPASS">>$1
+
+}
+
+echo "GET VPNBOOK PASSWORD v 0.3"
+
+rm $WORKDIR$HTMLFILE
+echo "Get vpnbook page..."
+wget -P $WORKDIR --default-page=$HTMLFILE --header="Content-type: text/plain" $VPNBOOKPAGE
+
+#testiruem nalichie failov
+if [ ! -f $WORKDIR$HTMLFILE ]; then
+    echo "ERROR: Page not saved"
+    exit 1
+fi
+
+#poluchaem parol
+VPNBOOKPASS=`cat $WORKDIR$HTMLFILE|grep "$PASSANCOR"|head -n1|sed -e :a -e 's/<[^>]*>//g;/</N;//ba'|sed 's/.$//'|awk ' {print $2} '`
+echo "vpnbook.com password: "$VPNBOOKPASS
+
+#proveryaem i zamenyaem paroli esli nado
+CTR="${#PEERSFILES[*]}"; I="0"
+until [ "$CTR" -eq "$I" ]; do
+    passwork $PEERSDIR${PEERSFILES[I]}
+    let "I+=1"
+done
+
+#sbros parolei v failah openvpn
+echo "Write slmple openvpn authorisation files..."
+CTR="${#SIMPLEFILES[*]}"; I="-1"
+until [ "$CTR" -eq "$I" ]; do
+    let "I+=1"
+    simplework ${SIMPLEFILES[I]}
+done
+

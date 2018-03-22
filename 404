@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#curl HTTP error detecting
+#Using examples:
+#./404 ttp://tolik-punkoff.com/net-takoj-stranicy
+#CURL error 1
+#./404 http://tolik-punkoff.com/net-takoj-stranicy
+#HTTP error 404
+#./404 http://tolik-punkoff.com/scripts/ip/ip61.php
+#OK
+
+
+HEADERDUMP="/tmp/headerdump.txt"
+SAVEFILE="/tmp/httpfile"
+HTTPSTATUS=""
+
+curl -o $SAVEFILE $1 -D $HEADERDUMP >/dev/null 2>/dev/null
+EXITCODE=$?
+if [ $EXITCODE -ne 0 ]; then
+    echo "CURL error $EXITCODE"
+else
+    HTTPSTATUS=`cat $HEADERDUMP|head -1|awk '{print $2}'`
+    
+    if [ "$HTTPSTATUS" == "200" ];then
+	echo "OK"
+    else
+	echo "HTTP error $HTTPSTATUS"
+    fi
+fi

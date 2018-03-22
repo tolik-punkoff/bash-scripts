@@ -1,0 +1,104 @@
+#!/bin/bash
+print_help () {
+    echo "use setroute <interface> [svt] [table]";
+    echo "<interface> pptp tunnel interface (e.g. ppp0)";
+    echo "Options:";
+    echo "v - set VIA parameter";
+    echo "s - set SRC parameter";
+    echo "t - set routing table";
+    echo "[table] - routing table (in /etc/iproute2/rt_tables)";
+    echo "if the table is not specified, used default route table";
+}
+
+SETVIA=0
+SETSRC=0
+ROUTINGTABLE=""
+
+#Proveryaem parametry
+if [ -z "$1" ]; then #esli 1 opcii net
+    print_help #pechataem help i uhodim
+    exit 2
+fi
+
+if [ "$1" = "-h" ] ;then #esli v 1 opcii zapros pomoshi
+    print_help #pechataem help i uhodim
+    exit 2
+fi
+
+if [ "$1" = "--help" ] ;then #esli v 1 opcii zapros pomoshi
+    print_help #pechataem help i uhodim
+    exit 2
+fi
+
+
+if  echo "$2"| grep -q "v"; then #ustanavlivat li VIA
+    SETVIA=1
+fi
+
+if  echo "$2"| grep -q "s"; then #ustanavlivat li SRC
+    SETSRC=1
+fi
+
+if  echo "$2"| grep -q "t"; then #ustanavlivat li tablicu
+    if [ -n $3 ]; then #esli ustanavlivat' proveraem 3 parametr
+	if grep -wq "$3" "/etc/iproute2/rt_tables"; then #est' li tablica
+	    ROUTINGTABLE=$3
+	else
+	    echo "Error! Table $3 not found in rt_tables"
+	    exit 1
+	fi
+    fi
+fi
+
+
+#Proveryaem, podnyat li interfeis
+ifconfig $1>/dev/null 
+if [ "$?" -ne 0 ]; then
+    echo "Interface $1 error ";
+    exit 1
+fi
+
+#Izvlekaem IP 
+TMPGREP=`ifconfig $1|grep "destination"`;#Grep'aem 'destination' (na toi zhe strochke i 'inet')
+if [ -z "$TMPGREP" ]; then
+    echo "Error! IP data not found!"
+    exit 1
+fi
+
+SRC=`echo $TMPGREP|awk ' {print $2} '`   # S pomoshju awk izvlekaem nujnie
+VIA=`echo $TMPGREP|awk ' {print $6} '`	 # stolbcy s ip (razdelitel probel)
+
+
+# Vivodim summary i formiruem elementy commandy
+echo "Device: $1 OK"
+if [ $SETSRC -eq 1 ]; then
+    echo "SRC set. IP: $SRC"
+    SRC="src "$SRC
+else
+    echo "SRC not set"
+    SRC=""
+fi
+
+if [ $SETVIA -eq 1 ]; then
+    echo "VIA set. IP: $VIA"
+    VIA="via "$VIA
+else
+    echo "VIA not set"
+    VIA=""
+fi
+
+if [ -z $ROUTINGTABLE ]; then
+    echo "Use default routing table."
+else
+    echo "Routing table: "$ROUTINGTABLE
+    ROUTINGTABLE="table "$ROUTINGTABLE
+fi
+
+#ustanavlivaem routing
+ip route del default $ROUTINGTABLE
+ip route add default dev $1 $VIA $SRC $ROUTINGTABLE
+if [ $? -eq 0  ]; then
+    echo "Routing set!"
+else
+    echo "Error detected!"
+fi

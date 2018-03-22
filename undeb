@@ -1,0 +1,47 @@
+#!/bin/bash
+
+DATADIR="./data"
+CONTROLDIR="./control"
+CURDIR=""
+
+if [ "$1" == "-h" ]; then #print help
+    echo "Unpacking all *.deb packages in current directory"
+    echo "use" `basename "$0"` "[-c]"
+    echo "-c - delete files in out-dirs"
+    exit
+fi
+
+echo "Unpacking all *.deb packages in current directory"
+
+echo "Making out-dirs... $DATADIR $CONTROLDIR"
+mkdir $DATADIR
+mkdir $CONTROLDIR
+
+if [ "$1" == "-c" ]; then 
+    echo "Clear out-dirs..."
+    CURDIR=`pwd`
+    cd $DATADIR
+    rm *
+    cd $CURDIR
+    cd $CONTROLDIR
+    rm *
+    cd $CURDIR
+fi
+
+echo "Processing:"
+F=`find . -name "*.deb" -type f`
+
+for FILE in $F
+do
+    
+    DATAPKG=`ar t ${FILE}|grep "data"`
+    CONTROLPKG=`ar t ${FILE}|grep "control"`
+    BASENAME=`basename -s ".deb" ${FILE}`
+    EXTDATA=`echo $DATAPKG|sed 's/data//g'`
+    EXTCONTROL=`echo $CONTROLPKG|sed 's/control//g'`
+    echo "${FILE} : $DATAPKG, $CONTROLPKG"
+    
+    #razbor paketa
+    ar -p "$BASENAME.deb" $DATAPKG > "$DATADIR/$BASENAME$EXTDATA"
+    ar -p "$BASENAME.deb" $CONTROLPKG > "$CONTROLDIR/$BASENAME$EXTCONTROL"
+done

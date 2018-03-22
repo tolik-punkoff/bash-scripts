@@ -1,0 +1,23 @@
+#!/bin/bash
+
+WTIMEOUT=10 #Vremya ozhidaniya
+ITEM_ARR=0  #Schetchik dlya tekuschego el-ta massiva
+
+CH_S[0]='-' #Massiv s simvolami 'melnitsy'
+CH_S[1]='/'
+CH_S[2]='|'
+CH_S[3]='\'
+
+while [ $WTIMEOUT -ge 0 ];do
+    tput sc #sohranyaem positsiu kursora
+    printf '%3s %s' $WTIMEOUT "${CH_S[ITEM_ARR]}" #vivodim ego i tekushii simvol
+    tput rc  #vosstanavlivaem  positsiu kursora
+    sleep 1
+    let "WTIMEOUT=WTIMEOUT-1" #umenshaem vremya ozhidaniya
+    let "ITEM_ARR=ITEM_ARR+1" #uvelichivaem schetchik el-tov
+    if [ $ITEM_ARR -eq 4 ]; then #esli schetchik = 4
+	let "ITEM_ARR=0" #obnulyaem ego, chtob opyat' nachat' s 1 el-ta 'melnitsy'
+    fi
+done
+
+printf '\n' #perehod na novuju stroku

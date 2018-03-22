@@ -1,0 +1,42 @@
+#!/bin/sh
+#jamesbond 2011
+# convert a puppy iso into netboot-compatible vmlinuz and humongous initrd.gz
+ 
+Xdialog --title "mknetboot" --msgbox "This script will create a set of files suitable for puppy netbooting.
+The input is a puppy ISO file. The output will be located in /tmp/netboot - one vmlinuz and one huge initrd.gz.
+If /root/tftpboot/pxelinux.cfg exist, the output files will be symlinked to this directory as well,
+so you can use netboot-server to server them straight away." 0 0
+ 
+ISO=$(Xdialog --title "Choose puppy ISO" -fselect "" 0 0 2>&1 | tail -n 1)
+ 
+if [ -n "$ISO" ]; then
+    rm -rf /tmp/netboot /tmp/netboot_iso
+    mkdir -p /tmp/netboot/x /tmp/netboot_iso
+    if mount -o loop "$ISO" /tmp/netboot_iso; then
+        if [ -f /tmp/netboot_iso/vmlinuz -a -f /tmp/netboot_iso/initrd.gz ]; then
+            Xdialog --title "mknetboot" --no-buttons --infobox "This will take a while. Please wait ..." 0 0 60000 &
+            PID=$!
+            cp /tmp/netboot_iso/vmlinuz /tmp/netboot
+            cd /tmp/netboot/x
+            zcat /tmp/netboot_iso/initrd.gz | cpio -i
+            cp /tmp/netboot_iso/*.sfs .
+            find . | cpio -o -H newc | gzip -9 > ../initrd.gz
+            cd /tmp/netboot
+            rm -rf x
+            if [ -d /root/tftpboot/pxelinux.cfg ]; then
+                rm /root/tftpboot/pxelinux.cfg/vmlinuz /root/tftpboot/pxelinux.cfg/initrd.gz
+                ln -s /tmp/netboot/vmlinuz /root/tftpboot/pxelinux.cfg
+                ln -s /tmp/netboot/initrd.gz /root/tftpboot/pxelinux.cfg
+            fi
+            kill $PID
+            Xdialog --title "mknetboot" --infobox "Done. Output is in /tmp/netboot." 0 0 10000
+        else
+            Xdialog --title "mknetboot" --msgbox "Invalid ISO - cannot find vmlinuz and initrd.gz" 0 0
+            rm -rf /tmp/netboot
+        fi
+        umount /tmp/netboot_iso
+        rm -rf /tmp/netboot_iso
+    else
+        Xdialog --title "mknetboot" --msgbox "Failed to mount $ISO" 0 0
+    fi
+fi

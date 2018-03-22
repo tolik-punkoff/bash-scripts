@@ -1,0 +1,19 @@
+#!/bin/bash
+#this script fix error:
+#device-mapper: reload ioctl on test failed: No such file or directory
+#table: 253:0: crypt: Error allocating crypto tfm
+#device-mapper: ioctl: error adding target to table
+#for truecrypt/tcplay
+ 
+echo "Loading modules..."
+modprobe lrw
+modprobe xts
+modprobe cbc
+modprobe rmd160
+modprobe sha256
+modprobe wp512
+modprobe aes
+modprobe serpent
+modprobe twofish
+modprobe dm-crypt
+echo "Complete!"

@@ -1,0 +1,43 @@
+#!/bin/bash
+###################################
+#
+# ppp-off
+#                        
+#  Linux PPP HOWTO 
+# Robert Hart  31.03.1997
+# Translated by Ilgiz Kalmetev
+#
+# Opredelit preryvaemoe ustroistvo
+#
+if [ "$1" = "" ]; then
+   DEVICE=ppp0
+else
+   DEVICE=$1
+fi
+
+####################################
+#
+# Esly pid-file ppp() yest, togda programma rabotaet.
+# Ostanovit ee.
+if [ -e /var/run/$DEVICE.pid ]; then
+   kill `cat /var/run/$DEVICE.pid`
+   echo "OK"
+#
+# Esly kill ne rabotaet, togda net processa,
+# zapushennogo pod etim pid.
+# ili sushestvuet postoronnii lock-file.
+# popytka ego udalit
+   if [ ! "$?" = "0" ]; then
+      rm -f /var/run/$DEVICE.pid
+      echo "ERROR: Removed stale pid file."
+      exit 1
+   fi
+#
+# Otlichno. Pust pppd popravit svoi nedo4et.
+   echo "PPP link to $DEVICE terminated."
+   exit 0
+fi
+#
+# ppp process ne zapushen dlya ppp()
+echo "ERROR: PPP link is not active on $DEVICE"
+exit 1

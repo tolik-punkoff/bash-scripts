@@ -1,0 +1,46 @@
+#!/bin/bash
+ 
+#заводим человеческие переменные
+ 
+MAIN_STAT=$1 #up/down
+DEV_NAME=$2
+TUN_MTU=$3
+LINK_MTU=$4
+LOCAL_IP=$5
+REMOTE_IP=$6
+ADD_STAT=$7 #init/restart
+ 
+#путь к ip и iptables
+ACPATH="/usr/sbin/"
+ 
+# [...]
+ 
+#соединение поднялось
+if [ "$MAIN_STAT" = "up" ]; then
+    #установка маршрута по умолчанию
+    "$ACPATH"ip route del default #удаление старого
+    #установка нового
+    #именно так, локальный ip и удаленный - один и тот же
+    #особенность провайдера Oo
+    "$ACPATH"ip route add default via $LOCAL_IP dev $DEV_NAME src $LOCAL_IP
+   
+     #разрешение транзитного трафика
+    "$ACPATH"iptables -P FORWARD ACCEPT
+   
+    #установка адреса DNS-сервера
+    echo "nameserver 10.42.0.1">/etc/resolv.conf
+    exit
+fi
+ 
+#соединение разорвано
+if [ "$MAIN_STAT" = "down" ]; then
+    #запрет транзитного трафика
+    "$ACPATH"iptables -P FORWARD DROP
+    #установка маршрута по умолчанию без VPN
+    "$ACPATH"ip route del default
+    "$ACPATH"ip route add default via 10.10.1.1 dev eth1 src 10.10.20.55
+   
+    #восстанавление адресов DNS по умолчанию
+    echo "nameserver 8.8.8.8">/etc/resolv.conf
+    echo "nameserver 8.8.4.4">>/etc/resolv.conf
+fi

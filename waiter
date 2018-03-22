@@ -1,0 +1,72 @@
+#!/bin/bash
+#waiter script (L) 8^12
+
+MESSAGE="Wait"
+WTIMEOUT=0
+ITEM_ARR=0 #current item counter
+
+CH_S[0]='-' #pseudographic items
+CH_S[1]='/'
+CH_S[2]='|'
+CH_S[3]='\'
+
+print_help()
+{
+    echo "use waiter <time> [message]"
+    echo "<time> - wait time"
+    echo "[message] - optional text message"
+}
+
+#parameters check
+
+if [ -z $1 ];then #if no parameters
+    print_help
+    exit 2
+fi
+
+#if help request
+if [ $1 = "-h" ];then
+    print_help
+    exit 2
+fi
+
+if [ $1 = "--help" ];then
+    print_help
+    exit 2
+fi
+
+if [ -n "$2" ];then
+    MESSAGE=$2
+fi
+
+if (echo $1 | grep -E -q "^?[0-9]+$");then
+    WTIMEOUT=$1
+else
+    echo "Not a number in first parameter <time>"
+    exit 1
+fi
+
+echo -n $MESSAGE" ("$WTIMEOUT" secounds): "
+tput sc #save cursor position
+
+while [ $WTIMEOUT -ge 0 ]; do
+    
+    #print timeout and current pseudographic char
+    printf '%3s %s' $WTIMEOUT ${CH_S[ITEM_ARR]}
+    tput rc #restore cursor position
+    sleep 1
+    
+    #decrease timeout and increase current item ctr.
+    let "WTIMEOUT=WTIMEOUT-1"
+    let "ITEM_ARR=ITEM_ARR+1"
+    
+    if [ $ITEM_ARR -eq 4 ];then 
+	#if items ctr > number of array items
+	#starting with 0 item
+	let "ITEM_ARR=0"
+    fi
+        
+done
+
+#next message starting with new string
+printf '\n'

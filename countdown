@@ -1,0 +1,14 @@
+#!/bin/bash
+ 
+WTIMEOUT=10 #vremya ozhidaniya
+ 
+while [ $WTIMEOUT -ge 0 ];do
+    tput sc #zapominaem poziciu kursora
+    printf '%3s' $WTIMEOUT  #vivodim znachenie peremrnnoi
+                            #(3 - chislo probelov, esli stroka menshe 3 simvolov
+                            #to nedostajushie simvoly v nachale stroki budut
+                            #probely)
+    tput rc #ustanavlivaem kursor na staroe mesto
+    sleep 1
+    let "WTIMEOUT=WTIMEOUT-1"
+done

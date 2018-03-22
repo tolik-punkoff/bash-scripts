@@ -1,0 +1,165 @@
+#!/bin/bash
+
+PIDFILE="/home/provproxy/tinyproxy.pid"
+TINYPROXYCMD="/usr/sbin/tinyproxy"
+PIDVAL=0
+WTIMEOUT=30
+OK=0
+
+CH_S[0]='-' #pseudographic items
+CH_S[1]='/'
+CH_S[2]='|'
+CH_S[3]='\'
+ITEM_ARR=0 #current item counter
+
+
+process_status()
+{
+    #poluchaem PID
+    if [ -e $PIDFILE ];then #esli file exist
+	PIDVAL=`cat $PIDFILE` #chitaem PID
+	TMPGREP=`ps -p $PIDVAL|grep "tinyproxy" -c` #esli process zapushen db 1 inache 0
+	if [ $TMPGREP -ge 1 ];then #process zapushen
+	    return
+	else #pid-file levyi
+	    rm $PIDFILE
+	fi
+    fi
+    PIDVAL=0
+    return
+}
+
+status_proxy()
+{
+    process_status
+    if [ $PIDVAL -eq 0 ]; then
+	echo "Tinyproxy not running"
+    else
+	echo "Tinyproxy running [PID=$PIDVAL]"
+    fi
+}
+
+start_proxy()
+{
+    process_status
+    if [ "$PIDVAL" -ne 0  ]; then
+	echo "Tinyproxy already work! [$PIDVAL]"
+	return 1
+    fi
+    $TINYPROXYCMD
+    
+    RETCODE=$?
+    if [ "$RETCODE" -ne 0 ]; then
+	echo "Not starting (code $RETCODE)"
+	return 1
+    fi
+    
+    echo -n "Starting proxy ("$WTIMEOUT" secounds): "
+    tput sc #save cursor position
+
+    while [ $WTIMEOUT -ge 0 ]; do
+    
+	#print timeout and current pseudographic char
+	printf '%3s %s' $WTIMEOUT ${CH_S[ITEM_ARR]}
+	tput rc #restore cursor position
+	sleep 1
+	process_status
+	if [ $PIDVAL -ne 0 ]; then #zapustili
+    	    OK=1
+    	    break
+	fi
+
+    
+	#decrease timeout and increase current item ctr.
+	let "WTIMEOUT=WTIMEOUT-1"
+	let "ITEM_ARR=ITEM_ARR+1"
+    
+	if [ $ITEM_ARR -eq 4 ];then 
+	    #if items ctr > number of array items
+	    #starting with 0 item
+	    let "ITEM_ARR=0"
+	fi
+        
+    done
+
+    #next message starting with new string
+    printf '\n'
+    
+    if [ "$OK" -eq 1 ]; then
+	echo "Started [$PIDVAL]"
+    else
+	echo "Not started :("
+    fi
+}
+
+stop_proxy()
+{
+    process_status
+    if [ $PIDVAL -eq 0 ]; then
+	echo "Tinyproxy not work!"
+	return 1
+    fi
+
+    echo -n "Stopping proxy [$PIDVAL] in $WTIMEOUT secounds: "
+    
+    tput sc #save cursor position
+
+    while [ $WTIMEOUT -ge 0 ]; do
+    
+	#print timeout and current pseudographic char
+	printf '%3s %s' $WTIMEOUT ${CH_S[ITEM_ARR]}
+	tput rc #restore cursor position
+	kill $PIDVAL
+	sleep 1
+	process_status
+	if [ $PIDVAL -eq 0 ]; then #ubit
+	    OK=1
+	    break
+	fi
+    
+    
+	#decrease timeout and increase current item ctr.
+	let "WTIMEOUT=WTIMEOUT-1"
+	let "ITEM_ARR=ITEM_ARR+1"
+    
+	if [ $ITEM_ARR -eq 4 ];then 
+	    #if items ctr > number of array items
+	    #starting with 0 item
+	    let "ITEM_ARR=0"
+	fi
+        
+    done
+
+    #next message starting with new string
+    printf '\n'
+    
+    if [ "$OK" -eq 1 ]; then
+	echo "Stopped!"
+    else
+	echo "Not stopped :("
+    fi
+}
+
+restart_proxy()
+{
+    stop_proxy
+    OK=0
+    start_proxy
+}
+
+case "$1" in
+    start)
+	start_proxy
+	;;
+    stop)
+	stop_proxy
+	;;
+    restart)
+	restart_proxy
+	;;
+    status)
+	status_proxy
+	;;
+    *)
+	echo "Usage: $0 {start|stop|restart|status}"
+esac

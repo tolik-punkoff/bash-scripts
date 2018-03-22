@@ -1,0 +1,141 @@
+#!/bin/bash 
+
+#Script, proveryaushii, podnyalos li soedinenie v3
+WTIMEOUT=120 #Maksimalnoe vremya ojhidania 's
+PEERFILE="/etc/ppp/peers/" #imya peer-file
+ADDR="" #adres dlya ping
+PING=0
+
+ITEM_ARR=0  #Schetchik dlya tekuschego el-ta massiva
+
+CH_S[0]='-' #Massiv s simvolami 'melnitsy'
+CH_S[1]='/'
+CH_S[2]='|'
+CH_S[3]='\'
+
+#Proveryaem parametry
+if [ -z "$1" ]; then
+    echo "USE myconn <peer file> [-p] [address]";
+    echo "Options:";
+    echo "<peer file> - file in /etc/ppp/peers";
+    echo "[-p] - use ping check";
+    echo "[address] - address to ping, default use gateway address";
+    exit 2;
+fi
+
+echo "Connecting to "$1;
+
+if [ "$2" = "-p" ]; then #esli vtoroi parametr skripta="-p"
+    #budem pingovat
+    PING=1; #ustanavlivaem flag vkluchajushii proverku
+    echo -n "Ping test address..."
+    if [ -n "$3" ]; then #proveryaem zadan li adres
+	ADDR=$3; #esli da, sohranyaem v peremennuju
+	echo $ADDR;
+    else #inache budet ispolzovan adres shluza
+	echo "Gateway address.";
+    fi
+else
+    echo "No ping test"
+fi
+
+
+PEERFILE="$PEERFILE""$1";
+#Proveryaem, est li file
+if [ ! -e "$PEERFILE" ]; then
+    echo "File "$PEERFILE" not found";
+    exit 1;
+fi
+
+#Proveryaem, ne soedineno li uzhe 
+#(v spiske processov d.b. 2 stroki pppd call NNN, esli soedineno)
+TMPGREP=`ps ax|grep "pppd call $1" -c`
+if [ $TMPGREP -gt 1 ]; then
+    echo "ERROR: $1 already connected"
+    exit 2;
+fi
+
+
+#Ishem pervyi svobodnyi nomer ppp soedinenia (eto nado dalshe)
+FIRSTFREE=0;
+ifconfig ppp$FIRSTFREE >/dev/null 2>/dev/null
+while [ $? -eq 0 ]; do
+    let "FIRSTFREE = FIRSTFREE+1";
+    ifconfig ppp$FIRSTFREE >/dev/null 2>/dev/null
+done
+
+
+#ishem parameter unit i udalyaem lishnee
+PPPUNIT=`grep "unit" $PEERFILE`;
+PPPUNIT=${PPPUNIT//unit/}
+PPPUNIT=${PPPUNIT// /}
+
+if [ ! -n "$PPPUNIT" ]; then	
+    #Esli parametr unit ne ukazan, sistema ispolzuet pervy svobodny
+    #pri podnyatii soedinenia
+    
+    echo "Parameter 'unit' not found, system use first free ($FIRSTFREE)";
+    PPPUNIT=FIRSTFREE;
+else
+    #Esli ukazan, to nado proverit' ne zanyat li on
+    ifconfig ppp$PPPUNIT >/dev/null 2>/dev/null
+    if [ $? -eq 0 ]; then		#zanyat
+	echo "WARNING! Unit #$PPPUNIT is already in use, system use 
+	first free ($FIRSTFREE)";
+	PPPUNIT=FIRSTFREE;
+    else			#svoboden
+	echo "Unit $PPPUNIT is free. OK."
+    fi
+fi
+
+#ustanavlivaem soedinenie
+pppd call $1
+
+CONNECTED=0 #flag, podnyalos li soedinenie
+
+echo -n "Wait ("$WTIMEOUT" secounds): "
+tput sc #sohranyaem positsiu kursora
+
+while [ $WTIMEOUT -ge 0 ]; do
+     printf '%3s %s' $WTIMEOUT "${CH_S[ITEM_ARR]}" #vivodim ego i tekushii simvol
+     tput rc  #vosstanavlivaem  positsiu kursora
+     sleep 1
+    #***************************************************
+    TMPGREP=`ifconfig ppp$PPPUNIT 2>/dev/null|grep "destination"` #pytaemsa poluchit strochku s ip shluza
+    if [ -n "$TMPGREP" ]; then #esli strochka est'
+	TMPGREP=`echo $TMPGREP|awk ' {print $6} '` #izvlekaem awk IP shluza
+	if [ -n "$TMPGREP" ];then #esli adres poluchen
+	    if [ $PING -eq 1 ]; then #esli nado pingovat'
+		if [ -z "$ADDR" ]; then #adres ne zadan, ispolzuem shluz
+        	    ADDR=$TMPGREP
+    		fi
+
+		ping -c 1 -I ppp$PPPUNIT $ADDR >/dev/null 2>/dev/null #pytaemsya propingovat shluz
+    		if [ $? -eq 0 ]; then # esli poluchilos
+        	    CONNECTED=1 #ustanavlivaem flag soedinenija
+        	    break #i preryvaem cykl. Ura!!
+    		fi
+    	    else #esli pingovat' ne nado
+        	CONNECTED=1 #ustanavlivaem flag soedinenija
+        	break #i preryvaem cykl. Ura!!
+    	    fi
+    	fi
+    fi
+    #***************************************************
+     let "WTIMEOUT=WTIMEOUT-1";
+     let "ITEM_ARR=ITEM_ARR+1" #uvelichivaem schetchik el-tov
+    if [ $ITEM_ARR -eq 4 ]; then #esli schetchik = 4
+	let "ITEM_ARR=0" #obnulyaem ego, chtob opyat' nachat' s 1 el-ta 'melnitsy'
+    fi
+done
+
+# chtob sledujushee soobshenie pechatalos so sledujushei stroki
+printf '\n' #perehod na novuju stroku
+
+# Proveryaem, soedinilis ili net i sootvetstvenno soobshaem
+if [ $CONNECTED -eq 0 ]
+then
+     echo "Connection timeout over :("
+else
+     echo "Connected sucsesseful!"
+fi

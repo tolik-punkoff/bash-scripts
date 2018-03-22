@@ -1,0 +1,35 @@
+#!/bin/bash
+ 
+#заводим переменные с понятными именами
+MAIN_STAT=$1 #up/down
+DEV_NAME=$2
+TUN_MTU=$3
+LINK_MTU=$4
+LOCAL_IP=$5
+REMOTE_IP=$6
+ADD_STAT=$7 #init/restart
+ 
+#директория с iptables и ip
+ACPATH="/usr/sbin/"
+ 
+# [...]
+ 
+#скрипт вызван при поднятии тоннеля
+if [ "$MAIN_STAT" = "up" ]; then
+     #установка маршрута по умолчанию для VPN
+    "$ACPATH"ip route del default
+    "$ACPATH"ip route add default via $REMOTE_IP dev $DEV_NAME src $LOCAL_IP
+     #настройка IPTABLES
+     #разрешение транзитного трафика
+    "$ACPATH"iptables -P FORWARD ACCEPT
+    exit
+fi
+ 
+#скрипт вызван при отключении тоннеля
+if [ "$MAIN_STAT" = "down" ]; then
+    #запрет транзитного трафика
+    "$ACPATH"iptables -P FORWARD DROP
+   #установка маршрута по умолчанию без VPN
+    "$ACPATH"ip route del default
+    "$ACPATH"ip route add default via 10.10.1.1 dev eth1 src 10.10.20.55
+fi

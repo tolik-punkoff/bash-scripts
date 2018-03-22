@@ -1,0 +1,8 @@
+#!/bin/bash
+#check integer positive numbers in bash variables
+ 
+if (echo "$1" | grep -E -q "^?[0-9]+$"); then
+    echo "Number"
+else
+    echo "Not Number"
+fi
