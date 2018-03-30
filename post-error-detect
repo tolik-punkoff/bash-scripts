@@ -1,0 +1,19 @@
+#!/bin/bash
+
+HEADERDUMP="/tmp/headerdump.txt"
+SAVEFILE="/tmp/httpfile"
+HTTPSTATUS=""
+
+curl -X POST "$1" -d "$2" -D $HEADERDUMP >$SAVEFILE 2>/dev/null
+EXITCODE=$?
+if [ $EXITCODE -ne 0 ]; then
+    echo "CURL error $EXITCODE"
+else
+    HTTPSTATUS=`cat $HEADERDUMP|head -1|awk '{print $2}'`
+    
+    if [ "$HTTPSTATUS" == "200" ];then
+	echo "OK"
+    else
+	echo "HTTP error $HTTPSTATUS"
+    fi
+fi
