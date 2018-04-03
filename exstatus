@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#curl HTTP status detecting (extended) example script
+#use exstatus <site> e.g. exstatus http://example.org/example.php
+#for test this script use php script
+#in end this file (base64 encoded)
+
+HEADERDUMP="/tmp/headerdump.txt"
+SAVEFILE="/tmp/httpfile"
+HTTPSTATUS=""
+HTTPSTATUSMESS="";
+HTTPSTATUSID=0;
+
+curl -o $SAVEFILE $1 -D $HEADERDUMP >/dev/null 2>/dev/null
+EXITCODE=$?
+if [ $EXITCODE -ne 0 ]; then
+    echo "CURL error $EXITCODE"
+else
+    HTTPSTATUS=`cat $HEADERDUMP|head -1|awk '{print $2}'` #get HTTP status code
+    HTTPSTATUSMESS=`cat $HEADERDUMP|head -1|cut -d ' ' -f 3-` #get HTTP status msg
+    HTTPSTATUSID=`echo $HTTPSTATUS|cut -c 1` #get first char status code
+    
+    case "$HTTPSTATUSID" in
+	1 ) echo -n "Informational: ";;
+	2 ) echo -n "Success: ";;
+	3 ) echo -n "Redirection: ";;
+	4 ) echo -n "Client Error: ";;
+	5 ) echo -n "Server Error: ";;
+	* ) echo -n "Unknow status: ";;
+    esac
+    
+    echo "$HTTPSTATUS $HTTPSTATUSMESS"
+fi
+
+
+#php script for test this
+#PD9waHANCglpbmlfc2V0KCdlcnJvcl9yZXBvcnRpbmcnLCBFX0FMTCk7DQoJaW5pX3NldC
+#gnZGlzcGxheV9lcnJvcnMnLCAxKTsNCglpbmlfc2V0KCdkaXNwbGF5X3N0YXJ0dXBfZXJy
+#b3JzJywgMSk7DQoJDQoJJGNvZGU9MDsNCglpZiAoZW1wdHkoJF9HRVQpKQ0KCXsNCgkJZW
+#NobyAiVXNlID9jb2RlPWh0dHBfc3RhdHVzX2NvZGUiOwkJDQoJfQ0KCWVsc2UNCgl7DQoJ
+#CWlmICghaXNzZXQoJF9HRVRbJ2NvZGUnXSkpDQoJCXsNCgkJCWVjaG8gIlVzZSA/Y29kZT
+#1odHRwX3N0YXR1c19jb2RlIjsNCgkJfQ0KCQllbHNlDQoJCXsNCgkJCSRjb2RlPSRfR0VU
+#Wydjb2RlJ107DQoJCQlpZiAoKCRjb2RlPDEwMCl8fCgkY29kZT41OTkpKQ0KCQkJew0KCQ
+#kJCWVjaG8gIldyb25nIGNvZGUgKG1pbiAxMDAsIG1heCA1OTkpIjsNCgkJCX0NCgkJCWVs
+#c2UNCgkJCXsNCgkJCQllY2hvICRjb2RlOw0KCQkJCWh0dHBfcmVzcG9uc2VfY29kZSgkY2
+#9kZSk7DQoJCQl9DQoJCX0NCgl9CQ0KPz4=
