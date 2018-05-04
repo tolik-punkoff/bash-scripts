@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+exstatus - curl HTTP error detecting example (extended)
+
 404 - curl HTTP error detecting example
 
 check-niteger-number-v1 - check integer positive numbers in bash variables example
