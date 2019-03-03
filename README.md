@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+addarh - add current directory to tar.gz archive
+
 exstatus - curl HTTP error detecting example (extended)
 
 404 - curl HTTP error detecting example
