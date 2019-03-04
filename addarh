@@ -1,13 +1,18 @@
 #!/bin/bash
 
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+print_help()
+{
     echo "Add current directory and subdirectories to tar.gz archive"
     echo "Use "`basename $0`" [-nc]"
     echo "[-nc] - add only content current directory (and subdirectories)."
     echo
     echo "Archive name == current directory name."
     echo "Archive will be created to up-directory."
-    exit 0
+    exit 1
+}
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    print_help
 fi
 
 CURDIR=`pwd`
@@ -20,12 +25,14 @@ fi
 DIRNAME=`basename $CURDIR`
 ARHNAME="../"$DIRNAME".tar.gz"
 
-
-if [ "$1" == "-nc" ]; then
-    tar -czvf $ARHNAME "."
-else
+if [ $# -ne 1 ]; then
     tar -czvf $ARHNAME "../"$DIRNAME
+else
+    if [ "$1" == "-nc" ]; then
+	tar -czvf $ARHNAME "."
+    else
+	echo "Wrong parameter(s)!"
+	echo
+	print_help
+    fi
 fi
-
-
-
