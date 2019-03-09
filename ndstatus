@@ -1,0 +1,64 @@
+#!/bin/bash
+
+#check network device status
+#exit codes 0 - device up 1 - device down 2 - none device 
+#3 - help or wrong parameters
+
+SLNT=0
+
+print_help()
+{
+    echo "Use "`basename $0`" <device> [-s]"
+    echo "<device> - network device name, e.g. eth0"
+    echo "-s - silent mode, no console output"
+}
+
+#parameters check and set silent mode
+if [ $# -eq 0 ]; then
+    echo "Wrong parameters!"
+    echo
+    print_help
+    exit 3
+else
+    if [ $# -eq 2 ]; then
+	if [[ "$2" == "-s" ]]; then
+	    SLNT=1
+	else
+	    echo "Wrong parameters!"
+	    echo
+	    print_help
+	    exit 3
+	fi
+    fi
+fi
+
+#print help
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+    print_help
+    exit 3
+fi
+
+DEV=$1
+
+# check device exist
+DOWN=`ifconfig -a | grep $DEV -c`
+if [ $DOWN -eq 0 ]; then
+    if [ $SLNT -eq 0 ];then
+	echo "Device $DEV: NONE"
+    fi
+    exit 2
+fi
+
+#check up/down status
+UP=`ifconfig | grep $DEV -c`
+if [ $UP -eq 0 ]; then #device down
+    if [ $SLNT -eq 0 ];then
+	echo "Device $DEV: DOWN"
+    fi
+    exit 1
+else
+    if [ $SLNT -eq 0 ];then
+	echo "Device $DEV: UP"
+    fi
+    exit 0
+fi
