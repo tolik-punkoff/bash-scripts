@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+findcol - find column in table by column name (for awk output)
+
 addarh - add current directory to tar.gz archive
 
 exstatus - curl HTTP error detecting example (extended)

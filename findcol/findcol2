@@ -1,0 +1,5 @@
+#!/bin/bash
+
+COLNUM=`cat salary3.txt|grep "CardID"|head -n1|sed 's/\t/\n/g'|grep -w -n "CardID"|awk -F":" '{print $1}'`
+
+cat salary3.txt|awk -v cnum="${COLNUM}" -F "\t" '{print $cnum}'|sed '/^$/d'|sed '/CardID/d'
