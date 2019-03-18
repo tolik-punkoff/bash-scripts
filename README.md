@@ -7,9 +7,9 @@ exstatus - curl HTTP error detecting example (extended)
 
 404 - curl HTTP error detecting example
 
-check-niteger-number-v1 - check integer positive numbers in bash variables example
+check-integer-number-v1 - check integer positive numbers in bash variables example
 
-check-niteger-number-v2 - check integer positive and negative numbers in bash variables example
+check-integer-number-v2 - check integer positive and negative numbers in bash variables example
 
 countdown, countdown2, waiter - countdowns on bash scripts
 
