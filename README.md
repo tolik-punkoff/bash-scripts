@@ -38,3 +38,5 @@ undeb - Unpacking all *.deb packages in current directory
 vpnbookpass - Update password for free VPN provider VPNBOOK
 
 ndstatus - check network device status
+
+detectfs - detecting file system on device

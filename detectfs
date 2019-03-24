@@ -1,0 +1,97 @@
+#!/bin/bash
+# Detect filesystem on device
+# Use detectfs <device> e.g. detectfs /dev/sda1
+
+print_help()
+{
+    echo "Use " `basename $0` " <device> e.g. "`basename $0`" /dev/sda1"
+    exit 1
+}
+
+linux_fs()
+{
+    LINUXDATA=`file -sL $1`
+    
+    CTR=`echo "$LINUXDATA"|grep -w -c "ext2"`
+    if [ $CTR -ne 0 ]; then
+	FSTYPE="EXT2"
+	return
+    fi
+    
+    CTR=`echo "$LINUXDATA"|grep -w -c "BTRFS"`
+    if [ $CTR -ne 0 ]; then
+	FSTYPE="BTRFS"
+	return
+    fi
+
+    CTR=`echo "$LINUXDATA"|grep -w -c "ext4"`
+    if [ $CTR -ne 0 ]; then
+	FSTYPE="EXT4"
+	return
+    fi
+    
+    CTR=`echo "$LINUXDATA"|grep -w -c "ext3"`
+    if [ $CTR -ne 0 ]; then
+	CTR=`echo "$LINUXDATA"|grep -c "large files"` #for EXT4 not full support
+	if [ $CTR -ne 0 ]; then
+	    FSTYPE="EXT4"
+	else
+	    FSTYPE="EXT3"
+	fi
+	return
+    fi
+    
+    FSTYPE="UNKNOW LINUX FS"
+}
+
+if [ $# -eq 0 ];then
+    print_help
+else
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+	print_help
+    fi
+fi
+
+FSTYPE=""
+FLD=`fdisk -l|grep -w "Id"|head -n1|sed 's/ /\n/g'|nl|grep -w "Id"|awk '{print $1}'`
+let "FLD=FLD-1"
+
+VOLID=`fdisk -l|grep -w "$1"|sed 's/*/ /g'|awk -v fld="${FLD}" '{print $fld}'`
+
+if [ -z $VOLID ];then
+    echo "$1 NO DEVICE"
+    exit 2
+fi
+
+case $VOLID in
+    6)
+	FSTYPE="FAT16"
+    ;;    
+    7)
+	FSTYPE="NTFS"
+    ;;
+    b)
+	FSTYPE="FAT32"
+    ;;
+    f)
+	FSTYPE="EXTENDED"
+    ;;
+    82)
+	FSTYPE="SWAP"
+    ;;
+    83)
+	FSTYPE="LINUX"
+    ;;
+    85)
+	FSTYPE="LINUX EXTENDED"
+    ;;
+    *)
+	FSTYPE="OTHER"
+    ;;
+esac
+
+if [[ "$FSTYPE" == "LINUX" ]]; then
+    linux_fs $1
+fi
+
+echo "$1 $FSTYPE"
