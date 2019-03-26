@@ -40,3 +40,5 @@ vpnbookpass - Update password for free VPN provider VPNBOOK
 ndstatus - check network device status
 
 detectfs - detecting file system on device
+
+old - old, no optimal and archive scripts
