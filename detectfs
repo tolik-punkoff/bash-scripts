@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    blkid |sed -n 's/\(.*:\).* TYPE=\"\([^\"]*\)\".*/\1\2/p'
+else
+    RES=`blkid "$1"`
+    RC=$?
+    if [ $RC -ne 0 ];then
+	echo "$1:Not found or not supported (code $RC)"
+    else
+	RES=`echo "$RES"|sed -n 's/\(.*:\).* TYPE=\"\([^\"]*\)\".*/\1\2/p'`
+	if [ -n "$RES" ];then
+	    echo "$RES"
+	else
+	    echo "$1: Not exist TYPE"
+	fi
+    fi
+fi
