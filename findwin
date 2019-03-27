@@ -1,0 +1,60 @@
+#!/bin/bash
+
+find_loader()
+{   
+    TMPMOUNT=0
+    
+    #check mountpoint
+    MOUNTPOINT=`mount|grep -w "$1"|awk '{print $3}'`
+    
+    if [ -z "$MOUNTPOINT" ]; then #not mount, mounting in temp mountpoint
+	mkdir -p "/tmp/tmpmount"
+	mount -t "$2" "$1" "/tmp/tmpmount"
+	if [ $? -ne 0 ]; then
+	    echo "$1 not mounted"
+	    return
+	fi
+	MOUNTPOINT="/tmp/tmpmount"
+	TMPMOUNT=1
+    fi
+    
+    #find loader 
+    
+    #bootmg - Win Vista and newer
+    FOUND=`find "$MOUNTPOINT" -maxdepth 1 -iname "bootmgr"`
+    if [ -n "$FOUND" ];then
+	echo "$1: found bootmgr (Windows Vista and newer)"
+    else
+	#ntldr - Win XP and older
+	FOUND=`find "$MOUNTPOINT" -maxdepth 1 -iname "ntldr"`
+	if [ -n "$FOUND" ];then
+	    echo "$1: found ntldr (Windows XP and older)"
+	else
+	    echo "$1: Windows loader not found"
+	fi
+    fi
+    
+    if [ $TMPMOUNT -eq 1 ]; then 
+	sleep 1
+	umount "/tmp/tmpmount"
+    fi
+}
+
+echo "Find Windows loaders..."
+
+IFS=$'\n'
+
+for DEVDATA in $(blkid); do
+    VOL=`echo "$DEVDATA" |sed -n 's/\(.*:\).* TYPE=\"\([^\"]*\)\".*/\1\2/p'`
+    
+    VOLNAME=`echo "$VOL"|awk -F ":" '{print $1}'`
+    VOLFS=`echo "$VOL"|awk -F ":" '{print $2}'`
+    
+    if [ -n "$VOLFS" ]; then
+	if [[ "$VOLFS" == "ntfs" || "$VOLFS" == "vfat" ]];then
+	    find_loader $VOLNAME  $VOLFS
+	else
+	    echo "$VOLNAME not windows volume"
+	fi
+    fi
+done

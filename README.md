@@ -41,4 +41,6 @@ ndstatus - check network device status
 
 detectfs - detecting file system on device
 
+findwin - find Windows loaders (bootmgr and ntldr) on local drives
+
 old - old, no optimal and archive scripts
