@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+checkactpart - check active partition status (boot flag)
+
 findcol - find column in table by column name (for awk output)
 
 addarh - add current directory to tar.gz archive

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    
+    echo -n "Use " `basename $0` "<device>"
+    echo 
+    echo "<device> - e.g. /dev/sda1"
+fi
+
+DEV=`echo "$1" | sed 's/[0-9]\+$//'`
+PART=`echo "$1"|sed 's/[^0-9]//g'`
+
+if [ -z "$DEV" ];then
+    echo "Bad device!"
+    exit 1
+fi
+
+if [ -z "$PART" ];then
+    echo "Bad partition!"
+    exit 1
+else
+    if [ "$PART" -eq 0 ];then
+	echo "Bad partition!"
+	exit 1
+    fi
+fi
+
+PARTREC=$(dd if=$DEV bs=1 count=16 status=none skip=$((0x1BE + 16 * ($PART - 1) )) | od -t x1 -A n |awk '{print $1}')
+
+if [ -z "$PARTREC" ];then
+    echo "Data error"
+    exit 1
+fi
+
+case "$PARTREC" in
+    00)
+	echo "$DEV$PART is NOT active partition ($PARTREC)"
+    ;;
+    80)
+	echo "$DEV$PART is ACTIVE partition ($PARTREC)"
+    ;;
+    *)
+	echo "$DEV$PART Result unknow ($PARTREC)"
+    ;;
+esac
