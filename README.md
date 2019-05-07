@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+createlist - create file list (ignore case in filename and/or mask)
+
 checkactpart - check active partition status (boot flag)
 
 findcol - find column in table by column name (for awk output)

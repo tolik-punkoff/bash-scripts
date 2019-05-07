@@ -1,0 +1,48 @@
+#!/bin/bash
+
+
+FOUNDLST=""
+
+DIR1="/home/smallwolfie/test/archives"
+DIR2="/home/smallwolfie/test/isos"
+
+TARGZ=""
+ISO=""
+
+create_list() #$1 - dir, $2 - file mask
+{
+    FOUNDLST=""
+    for FLE in $(find $1 -maxdepth 1 -iname $2); do
+	if [ -n "$FLE" ]; then
+	    FOUNDLST="$FOUNDLST"`basename $FLE`"\n"
+	fi
+    done
+}
+
+create_list $DIR1 "*.tar.gz"
+
+if [ -z "$FOUNDLST" ]; then
+    echo "$DIR1 *.tar.gz not found"
+else
+    TARGZ=$FOUNDLST
+fi
+
+create_list $DIR2 "*.iso"
+
+if [ -z "$FOUNDLST" ]; then
+    echo "$DIR2 *.iso not found"
+else
+    ISO=$FOUNDLST
+fi
+
+create_list $DIR2 "*.zip"
+
+if [ -z "$FOUNDLST" ]; then
+    echo "$DIR2 *.zip not found"
+fi
+
+echo "*.tar.gz:"
+echo -e -n "$TARGZ"
+echo "-----------"
+echo "*.iso:"
+echo -e -n "$ISO"
