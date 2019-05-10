@@ -1,0 +1,29 @@
+#!/bin/bash
+
+ask_y_n() #$1 - question
+{
+    echo -n "$1 [Y/N]: "
+    while [ 1 -eq 1 ];do
+	read -s -n1
+	
+	case "$REPLY" in
+	    [yY])
+		echo
+		return 0
+	    ;;
+	    [nN])
+		echo
+		return 1
+	    ;;
+	esac
+    done
+}
+
+
+ask_y_n "Run it?"
+
+if [ "$?" -eq 0 ];then
+    echo "User ask YES!"
+else
+    echo "User ask NO :("
+fi
