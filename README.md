@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+interactive - small simple interactivity functions for my scripts
+
 createlist - create file list (ignore case in filename and/or mask)
 
 checkactpart - check active partition status (boot flag)

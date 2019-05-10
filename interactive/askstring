@@ -1,0 +1,17 @@
+#!/bin/bash
+
+ask_string() #1-user ask string, #2-default variant
+{
+    read -r -p "$1 [$2]:"
+    
+    if [ -z "$REPLY" ]; then
+	if [ -n "$2" ]; then
+	    STR_RESULT=$2
+	fi
+    else
+	STR_RESULT=$REPLY
+    fi
+}
+
+ask_string "Select path" "/home/smallwolfie/test/testdir"
+echo $STR_RESULT
