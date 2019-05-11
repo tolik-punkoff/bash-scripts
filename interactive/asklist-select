@@ -1,0 +1,50 @@
+#!/bin/bash
+
+FOUNDLST=""
+DIR1="/home/smallwolfie/test/archives"
+TARGZ=""
+
+create_list() #$1 - dir, $2 - file mask
+{
+    FOUNDLST=""
+    for FLE in $(find $1 -maxdepth 1 -iname $2); do
+	if [ -n "$FLE" ]; then
+	    FOUNDLST="$FOUNDLST"`basename $FLE`"\n"
+	fi
+    done
+}
+
+ask_list() #$1 - list #$2 - header
+{
+    LIST_BUF=$1
+    LIST_BUF="$LIST_BUF""Cancel"
+    LIST_BUF=`echo -e "$LIST_BUF"|sed 's/\n/ /'`
+    
+    PS3=$2
+    
+    echo
+    select LIST_RET in $LIST_BUF; do
+	if [ -n "$LIST_RET" ];then
+	    break
+	fi
+    done
+    
+}
+
+create_list $DIR1 "*.tar.gz"
+
+if [ -z "$FOUNDLST" ]; then
+    echo "$DIR1 *.tar.gz not found"
+    exit
+else
+    TARGZ="$FOUNDLST"
+fi
+
+ask_list "$TARGZ" "Select file: "
+
+if [[ "$LIST_RET" == "Cancel" ]]; then
+    echo "Cancelled by user!"
+    exit
+fi
+
+echo "User select: $LIST_RET"
