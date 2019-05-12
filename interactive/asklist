@@ -1,0 +1,70 @@
+#!/bin/bash
+
+FOUNDLST=""
+DIR1="/home/smallwolfie/test/archives"
+TARGZ=""
+
+create_list() #$1 - dir, $2 - file mask
+{
+    FOUNDLST=""
+    for FLE in $(find $1 -maxdepth 1 -iname $2); do
+	if [ -n "$FLE" ]; then
+	    FOUNDLST="$FOUNDLST"`basename $FLE`"\n"
+	fi
+    done
+}
+
+ask_list() #$1 - list #$2 - header
+{
+    LIST_BUF=$1
+    echo "$2"
+    echo
+    
+    START_CHR=$((${#LIST_BUF}-2))
+    CHR_BUF=${LIST_BUF:$START_CHR:2}
+    if [[ "$CHR_BUF" == "\n" ]];then
+	LIST_BUF=${LIST_BUF::-2}
+    fi
+    
+    LIST_CTR=`echo -e "$LIST_BUF"|wc -l`
+    
+    echo -e "$LIST_BUF"|nl
+    echo -e "     C  Cancel"
+    echo
+    
+    while [ 1 -eq 1 ];do
+	read -n1 -s
+	
+	if [[ "x$REPLY" == "xC" || "x$REPLY" == "xc" ]]; then
+	    LIST_RET="C"
+	    return
+	fi
+	
+	if (echo "$REPLY" | grep -E -q "^?[0-9]+$"); then
+	    if [ "$REPLY" -gt 0 -a "$REPLY" -le "$LIST_CTR" ]; then
+		LIST_RET=$REPLY
+		LIST_ITEM=`echo -e "$LIST_BUF"|awk -v lnum="${LIST_RET}" '(NR == lnum)'`
+		return
+	    fi
+	fi
+
+    done
+}
+
+create_list $DIR1 "*.tar.gz"
+
+if [ -z "$FOUNDLST" ]; then
+    echo "$DIR1 *.tar.gz not found"
+    exit
+else
+    TARGZ=$FOUNDLST
+fi
+
+ask_list $TARGZ "Select file"
+
+if [[ "$LIST_RET" == "C" ]]; then
+    echo "Cancelled by user"
+else
+    echo "User select item: $LIST_RET"
+    echo "Item value: $LIST_ITEM"
+fi
