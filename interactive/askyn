@@ -23,7 +23,7 @@ ask_y_n() #$1 - question
 ask_y_n "Run it?"
 
 if [ "$?" -eq 0 ];then
-    echo "User ask YES!"
+    echo "User replied YES!"
 else
-    echo "User ask NO :("
+    echo "User replied NO :("
 fi
