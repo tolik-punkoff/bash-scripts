@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#get relative path example
+#start path: /tmp/test/dir1/subidr1/startpoint
+#end path: /tmp/test/dir2/subdir2/endpoint
+
+START="/tmp/test/dir1/subidr1/startpoint"
+END="/tmp/test/dir2/subdir2/endpoint"
+
+mkdir -p "$START"
+mkdir -p "$END"
+
+cd "$START"
+echo -n "Start directory:"
+pwd
+
+RP=`realpath --relative-to="$START" "$END"`
+echo "Relative path: $RP"
+
+echo "CD to relative path:"
+cd "$RP"
+
+echo -n "End directory:"
+pwd
