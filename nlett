@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#get number of latin letter in alphabet
+#use nlett <letter>, e.g nlett a
+
+SNUM=1
+SFND=`echo $1|grep '^[a..z]$'`
+if [ -z "$SFND" ]; then
+    echo "Error: in first parameter must be one small latin letter!"
+    exit 1
+fi
+
+for SYMB in {a..z}; do
+    if [[ "$SYMB" == "$SFND" ]]; then
+	break
+    else
+	let "SNUM=SNUM+1"
+    fi
+done
+
+echo "$SFND is $SNUM"
