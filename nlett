@@ -4,7 +4,7 @@
 #use nlett <letter>, e.g nlett a
 
 SNUM=1
-SFND=`echo $1|grep '^[a..z]$'`
+SFND=`echo $1|grep '^[a-z]$'`
 if [ -z "$SFND" ]; then
     echo "Error: in first parameter must be one small latin letter!"
     exit 1
