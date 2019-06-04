@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#get number of latin letter in alphabet
+#use nlett <letter>, e.g nlett a
+
+SNUM=0
+SFND=`echo $1|grep '^[a-z]$'`
+if [ -z "$SFND" ]; then
+    echo "Error: in first parameter must be one small latin letter!"
+    exit 1
+fi
+
+S_CODE=`printf '%d' \'$SFND`
+A_CODE=`printf '%d' \'a`
+SNUM=$( expr $S_CODE - $A_CODE + 1 )
+echo "$SFND is $SNUM"

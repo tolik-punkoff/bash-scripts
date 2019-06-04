@@ -5,6 +5,8 @@ interactive - small simple interactivity functions for my scripts
 
 nlett - get number of latin letter in alphabet example
 
+nlett2 - get number of latin letter in alphabet (use printf) example
+
 relpath - get relative path example
 
 createlist - create file list (ignore case in filename and/or mask)
