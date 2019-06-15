@@ -1,0 +1,44 @@
+#!/bin/bash
+
+#get syslinux 'hd? ?' from device name (e.g. /dev/sda1) example
+#use getsysl <device>
+
+SYSL_ID=""
+
+get_sysl_hd() #$1 - device name
+{
+    #get basename and check name
+    T_DN=`basename $1|grep '^[sh]d[a-z][1-9]*$'`
+    if [ -z "$T_DN" ]; then
+	return 1
+    fi
+    
+    #get letter #3
+    T_3LET=`expr substr $T_DN 3 1`
+    
+    #get letter number in alphabet
+    S_CODE=`printf '%d' \'$T_3LET`
+    A_CODE=`printf '%d' \'a`
+    SYSL_ID="hd"`expr $S_CODE - $A_CODE`
+    
+    #get volume number
+    T_VOLNUM=`echo "$T_DN" | sed 's/^[a-z]*//'`
+    if [ -z "$T_VOLNUM" ]; then
+	T_VOLNUM=0
+    fi
+    
+    SYSL_ID="$SYSL_ID $T_VOLNUM"
+}
+
+if [ -z "$1" ]; then
+    echo "Use "`basename $0` "<device>"
+    exit
+fi
+
+get_sysl_hd "$1"
+
+if [ $? -ne 0 ];then
+    echo "Bad device name!"
+else
+    echo "$1: $SYSL_ID"
+fi
