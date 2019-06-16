@@ -1,0 +1,40 @@
+#!/bin/bash
+
+#get syslinux MBR ID and partition ID
+
+SL_ID=""
+
+get_slid() #$1 - device name (e.g. /dev/sda1)
+{
+    #get base name
+    T_BN=`basename $1`
+    
+    #get volume number
+    T_VOLNUM=`echo "$T_BN" | sed 's/^[a-z]*//'`
+    
+    #get disk name
+    T_DSKNAM=`echo "$1"|sed 's/[0-9]\+$//'`
+    if [ -z "$T_DSKNAM" ]; then
+	return 1 #error
+    fi
+    
+    #get MBR ID
+    #T_MBRID=`fdisk -l "$T_DSKNAM" | grep "Disk identifier"|awk '{print $3}'`
+    T_MBRID=`hexdump -s 440 -n 4 -e '"0x%08x\n"' "$T_DSKNAM"`
+    
+    SL_ID="mbr:$T_MBRID $T_VOLNUM"
+
+}
+
+if [ -z "$1" ]; then
+    echo "Use "`basename $0` "<device>"
+    exit
+fi
+
+get_slid "$1"
+
+if [ "$?" -ne 0 ];then
+    echo "Error!"
+else
+    echo "$1: $SL_ID"
+fi

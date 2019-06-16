@@ -3,6 +3,8 @@ My bash scripts
 
 interactive - small simple interactivity functions for my scripts
 
+getslid - get syslinux MBR ID and partition ID example
+
 getsysl - get syslinux 'hd? ?' from device name (e.g. /dev/sda1) example
 
 nlett - get number of latin letter in alphabet example
