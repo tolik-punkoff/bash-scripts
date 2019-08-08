@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+other-term - sending script output to other terminal
+
 interactive - small simple interactivity functions for my scripts
 
 getslid - get syslinux MBR ID and partition ID example

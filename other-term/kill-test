@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "Kill test script..."
+
+pkill tscript

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SEC=1
+
+echo "Test script, write to STDOUT random number after $SEC sec."
+
+while [ 1 -eq 1 ];do
+    sleep $SEC
+    printf 'Number: %x\n' $RANDOM
+done
