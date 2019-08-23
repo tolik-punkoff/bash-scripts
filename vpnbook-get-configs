@@ -1,0 +1,102 @@
+#!/bin/bash
+
+VPNBOOKPAGE="https://www.vpnbook.com/"
+WORKDIR="/tmp/vpnbook/"
+UNPDIR="/tmp/vpnbook/unpack/"
+HTMLFILE="vpnhtml.html"
+
+OUTDIR="~/openvpn/vpnbook/"
+OUTMASK="*tcp80.ovpn"
+
+ADD_COMMANDS[0]="#EXAMPLE OPTION script-security 2"
+ADD_COMMANDS[1]="#EXAMPLE OPTION up '~/openvpn/vpnbook/vb-routes up'"
+ADD_COMMANDS[2]="#EXAMPLE OPTION down '~/openvpn/vpnbook/vb-routes down'"
+ADD_COMMANDS[3]="#EXAMPLE OPTION auth-user-pass ~/openvpn/vpnbook/vpnbook.auth"
+
+add_commands() #$1-output file
+{
+    CTR="${#ADD_COMMANDS[*]}"; I="0"
+    until [ "$CTR" -eq "$I" ]; do
+	
+	CMND_="${ADD_COMMANDS[I]}"
+	CMND_ST=`echo "$CMND_" |awk '{print $1}'`
+	CMND_C=`grep -c "$CMND_ST" "$1"`
+	
+	if [ "$CMND_C" -eq 0 ];then #not found, add
+	    sed -i -e "1 s%^%$CMND_\n%" "$1"
+	else #found, replace
+	    sed -i "s%^ *$CMND_ST.*%$CMND_%" "$1"
+	fi
+	
+	let "I+=1"
+    done
+}
+
+echo "GET VPNBOOK CONFIGS v 0.1"
+
+if [[ "$1" == "-h" ]]; then
+    echo "Use "`basename $0`" [options]"
+    echo "Options:"
+    echo "-c - Clean unpack directory after get configs"
+    echo "-h - This help"
+    echo "Please check values of variables at the"
+    echo "beginning of the script (e.g WORKDIR)"
+    echo "and add your VPN Config options to ADD_COMMANDS array"
+    exit
+fi
+
+if [[ "$1" == "-c" ]]; then
+    echo "Cleaning  unpack directory..."
+    rm -rf "$UNPDIR"
+fi
+
+rm "$WORKDIR$HTMLFILE"
+
+mkdir -p "$WORKDIR"
+mkdir -p "$UNPDIR"
+
+echo "Get vpnbook page..."
+wget -P $WORKDIR --default-page=$HTMLFILE --header="Content-type: text/html" $VPNBOOKPAGE
+
+if [[ ! -f "$WORKDIR$HTMLFILE" ]];then
+    echo "Page not downloaded!"
+    exit
+fi
+
+for ZIPURL in $(xidel -s --extract "//a/@href" "$WORKDIR$HTMLFILE" |grep ".zip"); do
+    ZIPNAME=`basename $ZIPURL`
+    echo "Download $ZIPNAME..."
+    wget -P $WORKDIR "$VPNBOOKPAGE/$ZIPURL" >/dev/null 2>/dev/null
+    if [ -f "$WORKDIR$ZIPNAME" ];then
+	echo "Unpacking $ZIPNAME..."
+	unzip -o "$WORKDIR$ZIPNAME" -d "$UNPDIR" >/dev/null 2>/dev/null
+	rm "$WORKDIR$ZIPNAME"
+    fi
+done
+
+echo -n "Replacing Windows line ends"
+for FLE in $(find $UNPDIR -maxdepth 1 -iname "*.ovpn"); do
+    echo -n "."
+    sed -i 's/\r$//' "$FLE"
+done
+echo
+
+echo -n "Add commands"
+for FLE in $(find $UNPDIR -maxdepth 1 -iname "*.ovpn"); do
+    echo -n "."
+    add_commands "$FLE"
+done
+echo
+
+
+#copyng to outdir
+if [ -n "$OUTDIR" ]; then
+    echo "Copy to outdir:"
+    for FLE in $(find $UNPDIR -maxdepth 1 -iname $OUTMASK); do
+	if [ -n "$FLE" ]; then
+	    BN=`basename $FLE`
+	    echo "$BN"
+	    cp "$FLE" "$OUTDIR$BN"
+	fi
+    done
+fi

@@ -55,6 +55,8 @@ tproxy - TinyProxy startup script
 
 undeb - Unpacking all *.deb packages in current directory
 
+vpnbook-get-configs - Script for automatic downloading vpnbook openvpn configs
+
 vpnbookpass - Update password for free VPN provider VPNBOOK
 
 ndstatus - check network device status
