@@ -1,0 +1,70 @@
+#!/bin/bash
+
+VPNBOOKPAGE="https://www.vpnbook.com/"
+WORKDIR="/tmp/vpnbook/"
+HTMLFILE="vpnhtml.html"
+PASSIMG="password.png"
+AUTHPATH="/myfiles/openvpn/configs/vpnbook.auth"
+
+echo "GET VPNBOOK PASSWORD v 0.4"
+
+if [[ "$1" == "-h" ]];then
+    echo "Use "`basename $0`" [parameters]"
+    echo "Parameters:"
+    echo "-h - this help"
+    echo "-s - show password image after recognize"
+    echo "After using this script you must install"
+    echo "Tesseract and FIM"
+    echo "Please check and set correct variable value"
+    echo "AUTPATH after use this script"
+    echo "(L) Hex_laden, 2019"
+    exit
+fi
+
+rm "$WORKDIR$HTMLFILE" 2>/dev/null
+rm "$WORKDIR$PASSIMG" 2>/dev/null
+mkdir -p "$WORKDIR"
+
+echo -n "Get vpnbook page..."
+wget -P "$WORKDIR" --default-page="$HTMLFILE" --header="Content-type: text/html" "$VPNBOOKPAGE"  2>/tmp/vpnpass.err.log
+
+if [[ ! -f "$WORKDIR$HTMLFILE" ]];then
+    echo
+    echo "Page not downloaded!"
+    exit
+else
+    echo "OK"
+fi
+
+echo -n "Get password image..."
+PASSLNK=`xidel -s --extract "//img/@src" "$WORKDIR$HTMLFILE"|grep "password.php"|head -n1|sed 's% %+%'`
+
+wget "$VPNBOOKPAGE$PASSLNK" -O "$WORKDIR$PASSIMG" 2>>/tmp/vpnpass.err.log
+if [[ ! -f "$WORKDIR$PASSIMG" ]];then
+    echo
+    echo "Image not downloaded!"
+    exit
+else
+    echo "OK"
+fi
+
+if [[ "$1" == "-s" ]];then
+    fim "$WORKDIR$PASSIMG"
+fi
+
+
+echo -n "Recognize image..."
+VP_PASSWORD=`tesseract "$WORKDIR$PASSIMG" stdout`
+echo "OK"
+echo "Password: $VP_PASSWORD"
+if [ -z "$VP_PASSWORD" ]; then
+    echo "Password is empty. Exitting!"
+    exit
+fi
+
+echo -n "Update autorisation file $AUTHPATH..."
+echo "vpnbook" >"$AUTHPATH"
+echo -n "$VP_PASSWORD">>"$AUTHPATH"
+
+echo
+echo "Complete!"
