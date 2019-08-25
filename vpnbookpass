@@ -4,7 +4,7 @@ VPNBOOKPAGE="https://www.vpnbook.com/"
 WORKDIR="/tmp/vpnbook/"
 HTMLFILE="vpnhtml.html"
 PASSIMG="password.png"
-AUTHPATH="/myfiles/openvpn/configs/vpnbook.auth"
+AUTHPATH="~/openvpn/vpnbook/vpnbook.auth"
 
 echo "GET VPNBOOK PASSWORD v 0.4"
 
