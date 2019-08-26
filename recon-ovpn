@@ -1,0 +1,63 @@
+#!/bin/bash
+
+CONFIGDIR="~/openvpn/configs"
+
+create_list() #$1 - dir, $2 - file mask
+{
+    FOUNDLST=""
+    for FLE in $(find $1 -maxdepth 1 -iname $2|sort); do
+	if [ -n "$FLE" ]; then
+	    FOUNDLST="$FOUNDLST"`basename $FLE`"\n"
+	fi
+    done
+}
+
+ask_list() #$1 - list #$2 - header
+{
+    LIST_BUF=$1
+    LIST_BUF="$LIST_BUF""Exit "
+    LIST_BUF="$LIST_BUF""Down"
+    LIST_BUF=`echo -e "$LIST_BUF"|sed 's/\n/ /'`
+    
+    PS3=$2
+    
+    echo
+    select LIST_RET in $LIST_BUF; do
+	if [ -n "$LIST_RET" ];then
+	    break
+	fi
+    done
+    
+}
+
+ovpn_down()
+{
+    echo -n "Down connection..."
+    CTR=0
+    pkill openvpn
+    while [ "$CTR" -ne "1" ];do
+	echo -n "."
+	CTR=`ps ax|grep -c "openvpn"`
+	sleep 1
+    done
+    echo
+}
+
+create_list $CONFIGDIR "*.ovpn"
+ask_list $FOUNDLST "Select config: "
+echo "Selected: $LIST_RET"
+
+if [[ "$LIST_RET" == "Exit" ]]; then
+    echo "Exitting..."
+    exit 0
+fi
+
+if [[ "$LIST_RET" == "Down" ]]; then
+    ovpn_down
+    exit 0
+fi
+
+ovpn_down
+echo "Up connection..."
+openvpn --config "$CONFIGDIR/$LIST_RET" >/dev/tty3 &
+~/scripts/waiter 10

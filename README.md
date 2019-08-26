@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+recon-ovpn - interactive script for select Openvpn config and reconnect connection
+
 other-term - sending script output to other terminal
 
 interactive - small simple interactivity functions for my scripts
