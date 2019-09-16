@@ -1,10 +1,11 @@
 #!/bin/bash
 
-CONFIGDIR="~/openvpn/configs"
+CONFIGDIR="/myfiles/openvpn/configs"
 
 create_list() #$1 - dir, $2 - file mask
 {
     FOUNDLST=""
+    echo "Find in $1"
     for FLE in $(find $1 -maxdepth 1 -iname $2|sort); do
 	if [ -n "$FLE" ]; then
 	    FOUNDLST="$FOUNDLST"`basename $FLE`"\n"
