@@ -1,0 +1,427 @@
+#!/bin/bash
+
+#--clear - udalit vse poluchennye faily iz rabochego kataloga
+#--getinfo - poluchit osnovnuju informaciju, API_BASE i konfig iz API_BASE
+#--getconfigs - osnovnaya informacija, configs.json i konfig eip
+#--providerkey - kluch provider'a
+#--userkey - kluch user'a
+#--copy - skopirovat v $OUTDIR
+#--check - izmenit v $OUTDIR esli chto-to pomenyalos
+
+PARAMS=""
+ACT_CLEAR=""
+ACT_GETINFO=""
+ACT_GETCONFIG=""
+ACT_PROVIDERKEY=""
+ACT_USERKEY=""
+ACT_COPY=""
+ACT_CHECK=""
+ACTSEL=0
+
+OUTDIR="/home/user/bitmask/providers"
+OUTDIR_CA="keys/ca"
+OUTDIR_USER="keys/client"
+WORKDIR="./data"
+
+PROVIDER=""
+API_URL=""
+API_VER=""
+API_BASE=""
+
+JSONFILE="provider.json";
+CONFIG_JSON="configs.json"
+EIP_JSON=""
+CACRTFILE="cacert.pem"
+USERCERT="openvpn.pem"
+
+HEADERDUMP="/tmp/headerdump.txt"
+DL_TEMP="/tmp/httpfile"
+HTTPSTATUS=""
+
+declare -a FILE_LIST #massiv polu4ennyh failov dlya kopirovanija
+
+existparam()
+{
+    echo "$PARAMS"|grep -q -i -e $1
+    
+    if [ "$?" -eq 0 ];then
+	return 1
+    else
+	return 0
+    fi
+}
+
+print_help()
+{
+    echo "Use $1 <-p> <provider> [KEYS]"
+    echo "or"
+    echo "$1 --clear"
+    echo "Keys:"
+    
+    echo "--getinfo - get provider.json"
+    echo "--clear - delete files in workdir and temp files"
+    echo "--getconfigs - get provider.json, configs.json and eip config"
+    echo "--providerkey - get provider certificate (cacert.pem)"
+    echo "--userkey - get user certificate (openvpn.pem)"
+    echo "--copy - copy certificates and json's in '\$OUTDIR/<provider>'"
+    echo "  \$OUTDIR=$OUTDIR"
+    echo "--check - copy if info or certificates changed"
+}
+
+get_file() #polu4aet fail po http
+{
+    #$1 - adres $2 - kone4ny put' 
+    #$3 - --insecure/-k esli ignorirovat rugan' na samopodpisannye sertifikaty
+    curl -o "$DL_TEMP" "$1" -D $HEADERDUMP $3 >/dev/null 2>/dev/null
+    EXITCODE=$?
+    if [ $EXITCODE -ne 0 ]; then #proverka na oshybki curl
+	echo "CURL error $EXITCODE"
+	return 1
+    else
+	HTTPSTATUS=`cat $HEADERDUMP|head -1|awk '{print $2}'` #oshybki HTTP
+	if [ "$HTTPSTATUS" == "200" ];then
+	    echo "Get $1 OK"
+	else
+	    echo "HTTP error $HTTPSTATUS"
+	    return 1
+	fi
+    fi
+    
+    cp "$DL_TEMP" "$2"
+    if [ $EXITCODE -ne 0 ]; then
+	return 1
+    fi
+}
+
+clear_data()
+{
+    echo
+    echo "Clear data..."
+    echo
+    
+    CURDIR=`pwd`
+    cd "$WORKDIR"
+    echo "Remove temp files..."
+    rm "$DL_TEMP"
+    rm "$HEADERDUMP"
+    echo "Remove JSON files..."
+    rm *.json
+    echo "Remove certificates..."
+    rm "$CACRTFILE"
+    rm "$USERCERT"
+    cd "$CURDIR"
+    echo "Cleared"
+}
+
+getinfo()
+{
+    #Polu4aem provider.json iz kornya saita
+    echo "Get $JSONFILE..."
+    get_file "https://$PROVIDER/$JSONFILE" "$WORKDIR/$JSONFILE"
+    if [ $? -ne 0 ]; then
+	echo "Get $JSONFILE ERROR"
+	exit 2
+    fi
+    
+    #vytaskivaem parametry api iz json
+    API_URL=`cat $WORKDIR"/"$JSONFILE|jq '.api_uri'|tr -d '\"'`
+    API_VER=`cat $WORKDIR"/"$JSONFILE|jq '.api_version'|tr -d '\"'`
+    API_BASE="$API_URL/$API_VER/"
+    
+    echo
+    echo "==============="
+    echo "API URL: $API_URL"
+    echo "API Version: $API_VER"
+    echo "API Base: $API_BASE"
+    echo "==============="
+    echo
+    
+    #Pytaemsya polu4it' provider.json iz BASE_API/provider.json, 
+    #hotya jego oby4no net
+    #echo "Get $API_BASE$JSONFILE..."
+    #get_file $API_BASE$JSONFILE "$WORKDIR/provider.api.json" -k
+    #if [ $? -ne 0 ];then
+	#echo "$API_BASE$JSONFILE get error."
+	#echo "Use $PROVIDER/$JSONFILE"
+    #else
+	#echo "$API_BASE$JSONFILE get OK."
+	#echo "Use provider.api.json"
+	#JSONFILE="provider.api.json"
+    #fi
+}
+
+getconfigs()
+{
+    
+    echo
+    echo "Get configs..."
+    echo
+
+    #ska4ivaem konfig s konfigami
+    get_file "$API_BASE$CONFIG_JSON" "$WORKDIR/$CONFIG_JSON" -k 
+    if [ $? -ne 0 ]; then
+	return 1
+    fi
+    
+    #vitaskivaem adress configa EIP
+    EIPADDR=`cat $WORKDIR"/"$CONFIG_JSON|jq '.services.eip'|tr -d '\"'`
+    echo "EIP config: $EIPADDR"
+    if [ -z "$EIPADDR" ]; then
+	echo "No EIP config."
+	return 1
+    fi
+    
+    #vitaskivaem imya EIP-konfiga
+    EIP_JSON=`echo "$EIPADDR"|awk -F "/" '{print $NF}'`
+    echo "EIP config file: $EIP_JSON"
+    
+    #ska4ivaem konfig eip    
+    get_file "$API_URL$EIPADDR" "$WORKDIR/$EIP_JSON" -k 
+    if [ $? -ne 0 ]; then
+	return 1
+    fi
+}
+
+getprovcert()
+{
+    echo
+    echo "Get provider certificate..."
+    echo
+    
+    #polu4aem URL sertificata i ego fingerprint iz configa
+    CACRTURL=`cat $WORKDIR"/"$JSONFILE|jq '.ca_cert_uri'|tr -d '\"'`
+    FGPRINT=`cat $WORKDIR"/"$JSONFILE|jq '.ca_cert_fingerprint'|tr -d '\"'|awk '{print $2}'`
+    echo "Provider certificate URL:" $CACRTURL
+    echo "Provider certificate fingerprint:" $FGPRINT
+
+    #получаем сертификат
+    get_file "$CACRTURL" "$WORKDIR/$CACRTFILE" -k
+    if [ $? -ne 0 ]; then
+	return 1
+    fi
+    
+    #polu4aem fingerprint faila sertificata
+    CRTFGPRINT=`openssl x509 -in $WORKDIR"/"$CACRTFILE -noout -fingerprint -sha256 -inform pem|awk -F = '{print tolower($2)}'|tr -d ':'`
+    echo "File fingerprint:" $CRTFGPRINT
+    
+    #proverka fingerprint
+    if [ "$FGPRINT" == "$CRTFGPRINT" ];then
+	echo "Fingerprint OK"
+    else
+	echo "WARNING: Fingerprint in JSON != CRT Fingerprint!"
+    fi
+}
+
+getusercert()
+{
+    # v 1 parametre mozhno ustanovit' --insecure dlya curl
+    echo
+    echo "Get user certificate..."
+    echo
+    
+    #otpravlyaem POST zapros na polu4enie sertificata
+    #sohranyaem polu4ennoe vo vremennyi fail i dampim
+    #zagolovki otveta
+    curl -X POST "$API_BASE/cert" -D "$HEADERDUMP" $1 >"$DL_TEMP" 2>/null
+    EXITCODE=$?
+    if [ $EXITCODE -ne 0 ];then
+	echo "curl error $EXITCODE"
+	return 1
+    else
+	HTTPSTATUS=`cat $HEADERDUMP|head -1|awk '{print $2}'` #ошибки HTTP
+	if [ "$HTTPSTATUS" == "200" ];then
+	    echo "Get VPN certificate OK"
+	else
+	    echo "Error $HTTPSTATUS"
+	    return 1
+	fi
+	#kopiruem polu4ennoe v rabo4ii katalog
+	cp "$DL_TEMP" "$WORKDIR/$USERCERT"
+	if [ $? -eq 0 ];then
+	    echo "User certificate $USERCERT"
+	else
+	    return 1;
+	fi
+    fi
+}
+
+copy_files()
+{
+    echo
+    echo "Copy files..."
+    echo
+    BAKDATE=`date -u +%Y%m%d-%H%M%S`
+    
+    #proveryaem polu4ali li faily
+    FCTR=${#FILE_LIST[@]}
+    if [ "$FCTR" -eq 0 ]; then
+	echo "No files to copy."
+	return 1
+    fi
+    
+    #sozdaem katalogi esli ih net
+    echo "Creating (if not exist) output dirs:"
+    mkdir -p "$OUTDIR"
+    echo "$OUTDIR"
+    mkdir -p "$OUTDIR/$PROVIDER"
+    echo "$OUTDIR/$PROVIDER"
+    mkdir -p "$OUTDIR/$PROVIDER/$OUTDIR_CA"
+    echo "$OUTDIR/$PROVIDER/$OUTDIR_CA"    
+    mkdir -p "$OUTDIR/$PROVIDER/$OUTDIR_USER"
+    echo "$OUTDIR/$PROVIDER/$OUTDIR_USER"
+    
+    #kopiruem faily
+    for FNAME in ${FILE_LIST[@]}
+    do
+	echo -n "Copy $FNAME..."
+	
+	#imena dlya ishodnogo
+	IN_FILE="$WORKDIR/$FNAME"
+	#i kone4nogo faila
+	if [ "$FNAME" == "$CACRTFILE" ];then #sertificat provider'a
+	    OUT_FILE="$OUTDIR/$PROVIDER/$OUTDIR_CA/$FNAME"
+	else
+	    if [ "$FNAME" == "$USERCERT" ];then #sertificat polzovatelya
+		OUT_FILE="$OUTDIR/$PROVIDER/$OUTDIR_USER/$FNAME"
+	    else #ina4e eto json - v katalog provider'a
+		OUT_FILE="$OUTDIR/$PROVIDER/$FNAME"
+	    fi
+	fi
+	
+	if [ -f "$OUT_FILE" ];then #kone4nyi fail jest'
+	    echo -n "exist..."
+	    if [ "$ACT_CHECK" -eq 1 ];then #nado proverit'
+		echo -n "check..."
+		diff "$IN_FILE" "$OUT_FILE"
+		if [ $? -eq 0 ];then #razli4iya net - kod vozvrata diff == 0
+		    echo "skip." #nado propustit' fail
+		    continue
+		fi
+	    fi
+	    #nado zabekapit' kone4nyi fail
+	    cp "$OUT_FILE" "$OUT_FILE.$BAKDATE.bak"
+	    echo -n "file backuped..."
+	fi
+	#kopiruem fail
+	cp "$IN_FILE" "$OUT_FILE"
+	echo "OK."
+    done
+}
+
+if [ -z "$1" ];then
+    print_help `basename $0`
+    exit 0
+fi
+
+
+if [ "$1" == "--help" ];then
+    print_help `basename $0`
+    exit 0
+fi
+
+if [ "$1" == "-h" ];then
+    print_help `basename $0`
+    exit 0
+fi
+
+if [ "$1" == "--clear" ];then
+    clear_data
+    exit 0
+fi
+
+
+if [ "$1" == "-p" ];then
+    if [ -z "$2" ];then
+	print_help `basename $0`
+	echo
+	echo "ERROR: Provider not set"
+	exit 1
+    else
+	PROVIDER="$2"
+    fi
+else
+    print_help `basename $0`
+    echo
+    echo "ERROR: Set provider first"
+    exit 1
+fi
+
+#ustanavlivaem rabo4ii katalog
+WORKDIR="$WORKDIR/$PROVIDER"
+#sozdaem ego
+mkdir -p "$WORKDIR"
+
+PARAMS=$*
+
+existparam "--clear"
+ACT_CLEAR=$?
+existparam "--getinfo"
+ACT_GETINFO=$?
+existparam "--getconfigs"
+ACT_GETCONFIG=$?
+existparam "--providerkey"
+ACT_PROVIDERKEY=$?
+existparam "--userkey"
+ACT_USERKEY=$?
+existparam "--copy"
+ACT_COPY=$?
+existparam "--check"
+ACT_CHECK=$?
+
+if [ "$ACT_CLEAR" -eq 1 ];then
+    clear_data
+    ACTSEL=1
+fi
+
+if [ "$ACT_GETINFO" -eq 1 ];then #get provider.json
+    getinfo
+    FILE_LIST+=($JSONFILE)
+    ACTSEL=1
+fi
+
+if [ "$ACT_GETCONFIG" -eq 1 ];then #polu4enie konfigov
+    if [ -z "$API_BASE" ]; then #API_BASE ne ustanovlen
+	getinfo #polu4aem osnovnuju informaciju (ne polu4im, vyletim)
+	FILE_LIST+=($JSONFILE)
+    fi
+    getconfigs
+    FILE_LIST+=($CONFIG_JSON)
+    FILE_LIST+=($EIP_JSON)
+    ACTSEL=1
+fi
+
+if [ "$ACT_PROVIDERKEY" -eq 1 ];then #polu4enie sertificata provider'a
+    if [ -z "$API_BASE" ]; then #API_BASE ne ustanovlen
+	getinfo ##polu4aem osnovnuju informaciju (ne polu4im, vyletim)
+	FILE_LIST+=($JSONFILE)
+    fi
+    getprovcert
+    FILE_LIST+=($CACRTFILE)
+    ACTSEL=1
+fi
+
+if [ "$ACT_USERKEY" -eq 1 ];then #polu4enie sertificata polzovatelya
+    if [ -z "$API_BASE" ]; then #API_BASE ne ustanovlen
+	getinfo #polu4aem osnovnuju informaciju (ne polu4im, vyletim)
+	FILE_LIST+=($JSONFILE)
+    fi
+    getusercert "--insecure"
+    FILE_LIST+=($USERCERT)
+    ACTSEL=1
+fi
+
+if [ "$ACT_COPY" -eq 1 ];then #kopirovanie failov v vihodnoj katalog
+    copy_files
+    ACTSEL=1
+fi
+
+if [ "$ACTSEL" -ne 1 ];then #neizvestnyj klu4
+    print_help `basename $0`
+    echo "ERROR: No know keys"
+    exit 1
+fi
+
+#debug
+#echo
+#echo "Debug"
+#echo ${FILE_LIST[@]}
