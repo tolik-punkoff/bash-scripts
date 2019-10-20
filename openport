@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "parameters: <port> [t|f]"
+    exit
+fi
+
+echo "Open  port "$1
+if [ -z "$2" ]; then
+    #to computer
+    iptables -A INPUT  -p tcp --dport $1 -j ACCEPT
+    iptables -A OUTPUT -p tcp --sport $1 -j ACCEPT
+    #from computer
+    iptables -A INPUT  -p tcp --sport $1 -j ACCEPT
+    iptables -A OUTPUT -p tcp --dport $1 -j ACCEPT
+else
+    if [ "$1"="t" ]; then
+	#to computer
+	iptables -A INPUT  -p tcp --dport $1 -j ACCEPT
+	iptables -A OUTPUT -p tcp --sport $1 -j ACCEPT
+    else
+	#from computer
+	iptables -A INPUT  -p tcp --sport $1 -j ACCEPT
+	iptables -A OUTPUT -p tcp --dport $1 -j ACCEPT
+    fi
+fi
+
+echo "OK"

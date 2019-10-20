@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+openport - Open port in IPTABLES
+
 bminfo - get keys and provider info for Bitmask VPN providers (riseup.net and calyx.net)
 
 recon-ovpn - interactive script for select Openvpn config and reconnect connection
