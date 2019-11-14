@@ -228,7 +228,7 @@ getusercert()
 	echo "curl error $EXITCODE"
 	return 1
     else
-	HTTPSTATUS=`cat $HEADERDUMP|head -1|awk '{print $2}'` #ошибки HTTP
+	HTTPSTATUS=`cat $HEADERDUMP|head -1|awk '{print $2}'` #oshibki HTTP
 	if [ "$HTTPSTATUS" == "200" ];then
 	    echo "Get VPN certificate OK"
 	else
