@@ -222,7 +222,7 @@ getusercert()
     #otpravlyaem POST zapros na polu4enie sertificata
     #sohranyaem polu4ennoe vo vremennyi fail i dampim
     #zagolovki otveta
-    curl -X POST "$API_BASE/cert" -D "$HEADERDUMP" $1 >"$DL_TEMP" 2>/null
+    curl -X POST "$API_BASE/cert" -D "$HEADERDUMP" $1 >"$DL_TEMP" 2>/dev/null
     EXITCODE=$?
     if [ $EXITCODE -ne 0 ];then
 	echo "curl error $EXITCODE"
