@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+netnamespace - network namespaces configuration example script
+
 openport - Open port in IPTABLES
 
 bminfo - get keys and provider info for Bitmask VPN providers (riseup.net and calyx.net)

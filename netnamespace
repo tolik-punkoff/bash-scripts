@@ -1,0 +1,79 @@
+#!/bin/bash
+#pered nastroikoi otkluchit' NetworkManager k heram!!!
+
+wait_to()
+{
+    L_MESS=$1
+    L_DEV=$2
+    L_ST=$3
+    L_TIME=$4
+    L_NS=$5
+    L_LOOP=0
+    L_RETCODE=666
+    
+    echo -n $L_MESS
+    while [ $L_LOOP -eq 0 ];do
+	echo -n "."
+	if [ -z $L_NS  ]; then
+	    ./ndstatus $L_DEV -s
+	    L_RETCODE=$?
+	else
+	    ip netns exec $L_NS ./ndstatus $L_DEV -s
+	    L_RETCODE=$?
+	fi
+	
+	if [[ "$L_ST"=="up" ]]; then
+	    if [ $L_RETCODE -eq 0 ]; then
+		L_LOOP=1
+		echo
+	    fi
+	fi
+		if [[ "$L_ST"=="down" ]]; then
+	    if [ $L_RETCODE -eq 1 ]; then
+		L_LOOP=1
+		echo
+	    fi
+	fi
+	
+	sleep 1
+	let L_TIME=L_TIME-1
+	if [ $L_TIME -lt 0 ]; then
+	    echo
+	    echo "Oops, something wrong..."
+	    sleep 10
+	    L_LOOP=1
+	fi
+    done
+}
+
+echo "Adding  namespace..."
+ip netns add provns
+
+echo "Configure virtual network card..."
+ip link add veth0 type veth peer name veth1
+ifconfig veth0 0.0.0.0 up
+ip link set veth1 netns provns
+
+ifconfig eth0 down
+wait_to "Down network card..." eth0 down 5
+ifconfig eth0 0.0.0.0 up
+wait_to "Up network card..." eth0 up 5
+
+echo "Configure bridge..."
+brctl addbr br0
+brctl addif br0 eth0 veth0
+ifconfig br0 192.168.0.15 netmask 255.255.255.0 up
+wait_to  "Up bridge..." br0 up 7
+
+#echo "Delete default route..."
+#ip route del default
+echo "Add default route..."
+ip route add default via 192.168.0.1 dev br0 src 192.168.0.15
+
+ip netns exec provns ifconfig veth1 192.168.0.20 netmask 255.255.255.0
+wait_to "Configure namespace. Up virtual network card..." veth1 up 5 provns
+echo "Set default route for namespace..."
+ip netns exec provns ip route add default via 192.168.0.1 dev veth1 src 192.168.0.20
+echo "Configure lo interface..."
+ip netns exec provns ifconfig lo 127.0.0.1
+echo "Network namespace configured!"
