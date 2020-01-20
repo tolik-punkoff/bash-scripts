@@ -1,0 +1,20 @@
+#!/bin/bash
+
+IFS_=$IFS
+IFS=$'\n'
+for TMPSTRING in $(cat "demotable.txt")
+do
+    eval $(echo "$TMPSTRING"|awk -F "," '{print "LOGIN=" dq $1 dq; 
+    print "FULLNAME=" dq $2 dq; print "PHONE=" dq $3 dq; print"ROOM=" dq $4 dq;
+    print "WORKTIME=" dq $5 dq}' dq='"')
+    
+    clear
+    echo "Login: $LOGIN"
+    echo "Full name: $FULLNAME"
+    echo "Phone: $PHONE"
+    echo "Room: $ROOM"
+    echo "Work time: $WORKTIME"
+    echo "Press any key to display next user..."
+    read -n 1 -s -r
+done
+IFS=$IFS_

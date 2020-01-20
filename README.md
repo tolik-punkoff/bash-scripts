@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+awk2bash-scripts - put awk results in bash variables
+
 netnamespace - network namespaces configuration example script
 
 openport - Open port in IPTABLES
