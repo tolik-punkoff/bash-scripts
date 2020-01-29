@@ -1,0 +1,27 @@
+#!/bin/bash
+
+OK_C=0
+ESC_C=255
+CANCEL_C=1
+    
+dialog --clear --title "Default Item Test" \
+    --default-item "Item #2" \
+    --menu "Select item:" \
+    20 51 7 \
+    "Item #1"  "Test Item #1" \
+    "Item #2" "Test Item #2" \
+    "Item #3" "Test Item #3" 2>"/tmp/dlgres.tmp"
+
+RETVAL=$?
+    
+case "$RETVAL" in
+    $OK_C)
+        RETVAL=`cat "/tmp/dlgres.tmp"`;;
+    $ESC_C)
+        exit;;
+    $CANCEL_C)
+        exit;;
+esac
+
+dialog --title "Selected" --msgbox "$RETVAL" 10 41
+clear

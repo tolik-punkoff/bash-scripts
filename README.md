@@ -1,6 +1,8 @@
 # bash-scripts
 My bash scripts
 
+my-menu - my menu examples
+
 awk2bash-scripts - put awk results in bash variables
 
 netnamespace - network namespaces configuration example script

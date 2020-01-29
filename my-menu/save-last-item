@@ -1,0 +1,117 @@
+#!/bin/bash
+
+RETVAL=""
+DIALOG="dialog"
+TEMPFILE="/tmp/dlgres.tmp"
+
+LAST_MENU1=""
+LAST_MENU2=""
+LAST_MENU_MAIN=""
+
+messagebox() #1 - title $2 - message
+{
+    $DIALOG --title "$1" --msgbox "$2" 10 41
+}
+
+menu_main()
+{
+    OK_C=0
+    ESC_C=255
+    CANCEL_C=1
+
+    $DIALOG --clear --title "Save last selected item demo" \
+	--default-item "$LAST_MENU_MAIN" \
+        --menu "Select action:" 20 60 7 \
+        "Save in variable"  "Save last selected item in variable" \
+        "Save in file" "Save last selected item in file" \
+        "Other item" "Other item" 2>"$TEMPFILE"
+
+    RETVAL=$?
+    
+    case "$RETVAL" in
+	$OK_C)
+	    RETVAL=`cat "$TEMPFILE" `
+	    LAST_MENU_MAIN=$RETVAL
+	    ;;
+	$ESC_C)
+	    exit;;
+	$CANCEL_C)
+	    exit;;
+    esac
+}
+
+menu_in_variable()
+{
+
+    OK_C=0
+    ESC_C=255
+    CANCEL_C=1
+    
+    $DIALOG --clear --title "Save last selected item into variable" \
+	--default-item "$LAST_MENU1" \
+        --menu "Select:" 20 60 7 \
+        "Item #1" "Item 1" \
+        "Item #2" "Item 2" \
+        "Item #3" "Item 3" 2>"$TEMPFILE"
+
+    RETVAL=$?
+    
+    case "$RETVAL" in
+	$OK_C)
+	    LAST_MENU1=`cat "$TEMPFILE" `
+	    messagebox "Message" "Selected $LAST_MENU1"
+	    ;;
+	$ESC_C)
+	    return;;
+	$CANCEL_C)
+	    return;;
+    esac
+}
+
+menu_in_file()
+{
+    OK_C=0
+    ESC_C=255
+    CANCEL_C=1
+    STATEFILE="./savestate"
+    
+    if [ -e "$STATEFILE" ]; then
+	LAST_MENU2=`cat "$STATEFILE"`
+    fi
+    
+    $DIALOG --clear --title "Save last selected item into file" \
+	--default-item "$LAST_MENU2" \
+        --menu "Select:" 20 60 7 \
+        "Item #1" "Item 1" \
+        "Item #2" "Item 2" \
+        "Item #3" "Item 3" 2>"$TEMPFILE"
+
+    RETVAL=$?
+    
+    case "$RETVAL" in
+	$OK_C)
+	    cp "$TEMPFILE" "$STATEFILE"
+	    LAST_MENU2=`cat "$STATEFILE" `
+	    messagebox "Message" "Selected $LAST_MENU2"
+	    ;;
+	$ESC_C)
+	    return;;
+	$CANCEL_C)
+	    return;;
+    esac
+}
+
+while [ 1 -eq 1 ];do
+    menu_main
+    case "$RETVAL" in
+	"Save in variable")
+	    menu_in_variable
+	    ;;
+	"Save in file")
+	    menu_in_file
+	    ;;
+	"Other item")
+	    messagebox "Message" "$RETVAL selected!"
+	    ;;
+    esac
+done
