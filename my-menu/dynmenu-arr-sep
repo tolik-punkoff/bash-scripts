@@ -1,0 +1,30 @@
+#!/bin/bash
+
+MNUFILE="./dynmenu-arr-sep.txt"
+
+declare -a MNUARR
+IDX=0
+while read LINE; do
+    PT_1=`echo "$LINE"|awk '{print $1}'`
+    PT_2=`echo "$LINE"|awk '{print $2}'`
+    MNUARR[$IDX]=$PT_1
+    let "IDX=IDX+1"
+    MNUARR[$IDX]=$PT_2
+    let "IDX=IDX+1"
+done <"$MNUFILE"
+
+#print array
+#for ((a=0; a < ${#MNUARR[*]}; a++))
+#do
+#    echo "$a: ${MNUARR[$a]}"
+#done
+#read -p "Press enter!"
+
+#build dynamic menu
+
+dialog --clear \
+    --column-separator "|" \
+    --title "Dynamic menu" \
+    --menu "Select option:" \
+    20 76 10 \
+    "${MNUARR[@]}"
