@@ -1,0 +1,13 @@
+#!/bin/bash
+
+MNUFILE="./dynmenu-file-sep.txt"
+
+#build dynamic menu from file
+
+dialog --clear \
+    --item-help \
+    --column-separator "|" \
+    --title "Dynamic menu" \
+    --menu "Select option:" \
+    20 76 10 \
+    --file "$MNUFILE" \
