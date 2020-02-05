@@ -1,0 +1,7 @@
+#!/bin/bash
+
+FADDR="http://tolik-punkoff.com/static/test.mp3"
+
+wget --progress=dot -O "./test.mp3"  "$FADDR" 2>&1 |\
+stdbuf -o0 awk '/[.] +[0-9][0-9]?[0-9]?%/ { print substr($0,63,3) }' | \
+dialog --gauge "Download file from $FADDR" 10 100
