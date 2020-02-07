@@ -4,7 +4,7 @@ IFS_=$IFS
 IFS=$'\n'
 for TMPSTRING in $(cat "demotable.txt")
 do
-    eval $(echo "$TMPSTRING"|awk -F "," '{print "LOGIN=" sq $1 sq; 
+    eval $(echo "$TMPSTRING"|sed -e 's~'\''~~g'|awk -F "," '{print "LOGIN=" sq $1 sq; 
     print "FULLNAME=" sq $2 sq; print "PHONE=" sq $3 sq; print"ROOM=" sq $4 sq;
     print "WORKTIME=" sq $5 sq}' sq="'")
     
