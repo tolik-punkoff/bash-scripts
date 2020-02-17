@@ -1,0 +1,19 @@
+#!/bin/bash
+    CH_S[0]='-' #pseudographic items
+    CH_S[1]='/'
+    CH_S[2]='|'
+    CH_S[3]='\'
+
+    CTR=0
+    PGNO=0
+    while [ "$CTR" -ne 10 ];do
+	let "CTR=CTR+1"
+	dialog --sleep 1 \
+	--title "Wait 10 secounds" \
+        --infobox "Wait for 10 secounds over:${CH_S[PGNO]}" 3 35
+	
+	let "PGNO=PGNO+1"
+	if [ "$PGNO" -eq 4 ];then
+	    PGNO=0
+	fi
+    done
