@@ -9,8 +9,8 @@
     while [ "$CTR" -ne 10 ];do
 	let "CTR=CTR+1"
 	dialog --sleep 1 \
-	--title "Wait 10 secounds" \
-        --infobox "Wait for 10 secounds over:${CH_S[PGNO]}" 3 35
+	--title "Wait 10 seconds" \
+        --infobox "Wait for 10 seconds over:${CH_S[PGNO]}" 3 35
 	
 	let "PGNO=PGNO+1"
 	if [ "$PGNO" -eq 4 ];then
