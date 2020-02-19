@@ -28,4 +28,6 @@ wget-progressbar - use dialog --gauge to display progressbar for wget download
 
 ![wget-progressbar](/my-menu/screens/progressbar-wget.png)
 
+wget-progressbar2 - added wget error control
+
 infobox-mill - dialog --infobox with pseudographic "mill" View demo video on YouTube: https://www.youtube.com/watch?v=o9KempHy5To

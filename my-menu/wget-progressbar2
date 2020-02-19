@@ -1,0 +1,58 @@
+#!/bin/bash
+
+FADDR="http://tolik-punkoff.com/static/test.mp3"
+FPATH="./test.mp3"
+
+messagebox() #1 - title $2 - message
+{
+    dialog --title "$1" --msgbox "$2" 10 41
+}
+
+
+set -o pipefail
+
+wget --progress=dot --tries=10 --timeout=30 -O "$FPATH"  "$FADDR" 2>&1 |\
+stdbuf -o0 awk '/[.] +[0-9][0-9]?[0-9]?%/ { print substr($0,63,3) }' | \
+dialog --gauge "Download file from $FADDR" 10 100
+
+RETVAL=$?
+
+case "$RETVAL" in
+    0)
+	 messagebox "Complete!" "File downloaded!"
+	;;
+    1)
+	messagebox "Error" "Generic error ($RETVAL)"
+	;;
+    2)
+	messagebox "Error" "Command line or config error ($RETVAL)"
+	;;
+    3)
+	messagebox "Error" "I/O error ($RETVAL)"
+	;;
+    4)
+	messagebox "Error" "Network failure ($RETVAL)"
+	;;
+    5)
+	messagebox "Error" "SSL verification failure ($RETVAL)"
+	;;
+    6)
+	messagebox "Error" "Username/password authentication failure ($RETVAL)"
+	;;
+    7)
+	messagebox "Error" "Protocol error ($RETVAL)"
+	;;
+    8)
+	messagebox "Error" "Server error ($RETVAL)"
+	;;
+    *)
+	messagebox "Error" "Unknow error ($RETVAL)"
+	;;
+esac
+
+#remove wrong file if exist
+if [ "$RETVAL" -ne 0 ];then
+    if [ -e "$FPATH" ];then
+	rm "$FPATH"
+    fi
+fi
