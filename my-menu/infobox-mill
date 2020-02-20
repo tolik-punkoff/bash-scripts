@@ -10,7 +10,7 @@
 	let "CTR=CTR+1"
 	dialog --sleep 1 \
 	--title "Wait 10 seconds" \
-        --infobox "Wait for 10 seconds over:${CH_S[PGNO]}" 3 35
+        --infobox "Wait for 10 seconds:${CH_S[PGNO]}" 3 35
 	
 	let "PGNO=PGNO+1"
 	if [ "$PGNO" -eq 4 ];then
