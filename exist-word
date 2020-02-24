@@ -1,0 +1,17 @@
+#!/bin/bash
+
+STR="cat lynx lion coguar"
+
+if [ -z "$1" ];then
+    echo "Exist substring demo"
+    echo "Use "`basename $0`" <string>"
+    exit
+fi
+SUBSTR="$1"
+
+CNTR=`echo "$STR" | grep -w -c "$SUBSTR"`
+if [ "$CNTR" -ne 0 ];then
+    echo "Exist"
+else
+    echo "Not exist"
+fi

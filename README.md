@@ -77,4 +77,6 @@ detectfs - detecting file system on device
 
 findwin - find Windows loaders (bootmgr and ntldr) on local drives
 
+exist-word - check if a word is in a string (demo script)
+
 old - old, no optimal and archive scripts
