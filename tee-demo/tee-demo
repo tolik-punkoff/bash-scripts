@@ -1,0 +1,23 @@
+#!/bin/bash
+
+SEND_FILE="./test.log"
+SEND_TTYN="4"
+
+if [[ "$SEND_FILE" == "" && "$SEND_TTYN" == "" ]];then
+    #No log, no tty (stdout)
+    ./tscript &
+else
+    if [[ "$SEND_FILE" != "" && "$SEND_TTYN" != "" ]];then
+	#Log, and tty
+	    ./tscript |tee "$SEND_FILE" >/dev/tty"$SEND_TTYN" &
+    else
+	if [[ "$SEND_FILE" != "" ]];then
+	    #Log
+	    ./tscript >"$SEND_FILE" &
+	else
+	    #tty
+	    ./tscript >/dev/tty"$SEND_TTYN" &
+	fi
+    fi
+fi
+

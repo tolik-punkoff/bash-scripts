@@ -79,4 +79,6 @@ findwin - find Windows loaders (bootmgr and ntldr) on local drives
 
 exist-word - check if a word is in a string (demo script)
 
+tee-demo - demo tee command
+
 old - old, no optimal and archive scripts
