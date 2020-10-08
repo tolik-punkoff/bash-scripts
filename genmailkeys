@@ -1,0 +1,34 @@
+#!/bin/bash
+
+TMPPATH="/tmp/mailkeys"
+OUTPATH="/etc/dovecot/private"
+
+echo "Making temp path $TMPPATH..."
+mkdir -p "$TMPPATH"
+echo "Making output path $OUTPATH..."
+mkdir -p "$OUTPATH"
+
+echo "Generate a root private key (rootCA.key)..."
+openssl genrsa -out "$TMPPATH/rootCA.key" 2048
+
+echo "Generate a self-signed root sertificate (rootCA.pem):"
+openssl req -x509 -new -nodes -key "$TMPPATH/rootCA.key" -days 2048 -out "$TMPPATH/rootCA.pem"
+
+echo "Create private key for the final certificate (dovecot.key)..."
+openssl genrsa -out "$TMPPATH/dovecot.key" 2048
+
+echo "Create a certificate sign request (dovecot.csr):"
+openssl req -new -key "$TMPPATH/dovecot.key" -out "$TMPPATH/dovecot.csr"
+
+echo "Create final certificate..."
+openssl x509 -req -in "$TMPPATH/dovecot.csr" -CA "$TMPPATH/rootCA.pem" -CAkey "$TMPPATH/rootCA.key" -CAcreateserial -out "$TMPPATH/dovecot.crt" -days 2048
+
+echo "Copy key and certificate to $OUTPATH..."
+cp "$TMPPATH/dovecot.key" "$OUTPATH/dovecot.key"
+cp "$TMPPATH/dovecot.crt" "$OUTPATH/dovecot.crt"
+
+echo "Set permissions..."
+chmod 400 "$OUTPATH/dovecot.key"
+chmod 400 "$OUTPATH/dovecot.crt"
+
+echo "Complete!"

@@ -81,4 +81,6 @@ exist-word - check if a word is in a string (demo script)
 
 tee-demo - demo tee command
 
+genemailkeys - script for genering self-sigend serificate to Dovecot
+
 old - old, no optimal and archive scripts
