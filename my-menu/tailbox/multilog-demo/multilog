@@ -1,0 +1,36 @@
+#!/bin/bash
+
+DIALOG="dialog"
+
+LOG_FILE="./test.log"
+LOG_TTY="/dev/tty4"
+RMLOG=0
+LOG_APPEND=1
+
+if [ -z "$LOG_FILE" ]; then
+    LOG_FILE="./log.tmp"
+    RMLOG=1
+    LOG_APPEND=0
+fi
+
+if [ -z "$LOG_TTY" ];then #no TTY, only log
+    if [ "$LOG_APPEND" -eq 1 ];then #append log
+	./tscript >>"$LOG_FILE" &
+    else #new log
+	./tscript >"$LOG_FILE" &
+    fi
+else #log and tty
+    if [ "$LOG_APPEND" -eq 1 ];then #append log
+	./tscript |tee -a "$LOG_FILE" >"$LOG_TTY" &
+    else #new log
+	./tscript |tee "$LOG_FILE" >"$LOG_TTY" &
+    fi
+fi
+
+$DIALOG --title "LOG"  \
+	--exit-label "Close log window" \
+        --tailbox "$LOG_FILE" 24 70
+
+if [ "$RMLOG" -eq 1 ]; then
+    rm "$LOG_FILE"
+fi

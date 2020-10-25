@@ -35,3 +35,5 @@ infobox-mill - dialog --infobox with pseudographic "mill" View demo video on You
 tailbox/logview - simple log viewer based on dialog --tailbox. Demo video on YouTube: https://youtu.be/kdOjJFtbuI4
 
 ![logview](/my-menu/screens/tailbox-viewlog.png)
+
+tailbox/multilog-demo - display log in dialog --tailbox in realtime, send log in realtime to other terminal, and save log in file. Demo video on YouTube: https://youtu.be/AARNx4SbYJg

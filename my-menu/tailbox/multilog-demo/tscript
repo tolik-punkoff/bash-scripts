@@ -1,0 +1,14 @@
+#!/bin/bash
+
+SEC=1
+CTR=10
+
+echo "Test script, write to STDOUT random number after $SEC sec."
+
+while [ "$CTR" -ne 0 ];do
+    let "CTR=CTR-1"
+    printf '%x Number: %x\n' $CTR $RANDOM
+    sleep $SEC
+done
+
+echo "Complete!"
