@@ -1,0 +1,39 @@
+#!/bin/bash
+
+DIALOG="dialog"
+
+#check dialog utility
+$DIALOG >/dev/null 2>/dev/null
+RETVAL=$?
+if [ "$RETVAL" -eq 126 ]; then
+    echo "$DIALOG access denied or not execute file!"
+    exit 1
+fi
+if [ "$RETVAL" -eq 127 ]; then
+    echo "$DIALOG not found!"
+    exit 1
+fi
+
+#check parameters and print help
+if [ -z "$1" ]; then
+    echo "Use " `basename $0` "<log_file>"
+    exit 1
+fi
+if [[ "$1" == "-h" ]]; then
+    echo "Use " `basename $0` "<log_file>"
+    exit 1
+fi
+if [[ "$1" == "--help" ]]; then
+    echo "Use " `basename $0` "<log_file>"
+    exit 1
+fi
+
+#check file
+if [ ! -f "$1" ];then
+    $DIALOG --title "Error" --msgbox "$1 not found or not a file!" 10 41
+    exit 1
+fi
+
+$DIALOG --title "LOG"  \
+	--exit-label "Close log window" \
+        --tailbox "$1" 24 70

@@ -31,3 +31,7 @@ wget-progressbar - use dialog --gauge to display progressbar for wget download
 wget-progressbar2 - added wget error control
 
 infobox-mill - dialog --infobox with pseudographic "mill" View demo video on YouTube: https://www.youtube.com/watch?v=o9KempHy5To
+
+tailbox/logview - simple log viewer based on dialog --tailbox. Demo video on YouTube: https://youtu.be/kdOjJFtbuI4
+
+![logview](/my-menu/screens/tailbox-viewlog.png)
