@@ -83,4 +83,6 @@ tee-demo - demo tee command
 
 genemailkeys - script for genering self-sigend serificate to Dovecot
 
+randstr - get random string from english upper and lower letters and numbers
+
 old - old, no optimal and archive scripts
