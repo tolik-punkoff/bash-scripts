@@ -1,0 +1,15 @@
+#!/bin/bash
+echo "Restore firewall rules"
+
+# Delete all rules
+iptables -F
+iptables -F  -t nat
+iptables -F  -t mangle
+iptables -X
+iptables -t nat -X
+iptables -t mangle -X
+
+# Accept all traffic
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT

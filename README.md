@@ -5,6 +5,8 @@ my-menu - my menu examples
 
 awk2bash-scripts - put awk results in bash variables
 
+disablefw - delete all IPTABLES/NETFILTER rules
+
 netnamespace - network namespaces configuration example script
 
 openport - Open port in IPTABLES
