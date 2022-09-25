@@ -1,0 +1,34 @@
+#!/bin/bash
+
+NAMES=("Black;" "Red;" "Green;" "Yellow;" "Blue;" "Magenta;" "Cyan;" "White;" "Not used;" "Default;")
+
+echo "Foreground color:"
+for FG_COLOR in {0..9}; do
+    if [ $FG_COLOR -eq 0 ]; then tput setab 7; fi
+    tput setaf $FG_COLOR
+    echo -n "${NAMES[$FG_COLOR]} "
+    if [ $FG_COLOR -eq 0 ]; then tput setab 9; fi
+done
+echo
+echo
+tput sgr0
+
+echo "Background color:"
+for BG_COLOR in {0..9}; do
+    if [ $BG_COLOR -ne 0 ]; then tput setaf 0; fi
+    tput setab $BG_COLOR
+    echo -n "${NAMES[$BG_COLOR]} "
+done
+echo
+echo
+tput sgr0
+
+echo "Text style:"
+tput bold; echo "Bold"; tput sgr0
+tput smul; echo "Underlined"; tput rmul
+tput rev; echo "Reversed"; tput sgr0
+tput blink; echo "Blinking"; tput sgr0
+tput invis; echo "Invisible"; tput sgr0
+tput smso; echo "Standout"; tput rmso
+
+tput sgr0

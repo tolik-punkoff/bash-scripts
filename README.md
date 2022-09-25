@@ -85,4 +85,6 @@ tee-demo - demo tee command
 
 randstr - get random string from english upper and lower letters and numbers
 
+tputcolors - tput set console colors and text styles
+
 old - old, no optimal and archive scripts
