@@ -33,7 +33,7 @@ clip() {
 }
 
 file_upload() {
-    local curl_opts="-s -k " file="$1" type
+    local curl_opts="-s" file="$1" type
     [[ "${progress_quiet}" ]] || curl_opts="-#"
     [[ "${quiet}" ]] || printf "uploading \"%s\"...\n" "${file}" >&2
     [[ "$#" -gt 1 ]] && printf "%s ... " "${url}"
@@ -45,7 +45,7 @@ file_upload() {
 }
 
 shorten_url() {
-    local curl_opts="-s -k " url="$1" shortened
+    local curl_opts="-s" url="$1" shortened
     [[ "${progress_quiet}" ]] || curl_opts="-#"
     [[ "${quiet}" ]] || printf "shortening \"${url}\"...\n" >&2
     [[ "$#" -gt 1 ]] && printf "%s ... " "${url}"
@@ -57,7 +57,7 @@ shorten_url() {
 }
 
 upload_url() {
-    local curl_opts="-s -k " url="$1" uploaded
+    local curl_opts="-s" url="$1" uploaded
     [[ "${progress_quiet}" ]] || curl_opts="-#"
     [[ "${quiet}" ]] || printf "uploading \"%s\"...\n" "${url}" >&2
     [[ "$#" -gt 1 ]] && printf "%s ... " "${url}"
