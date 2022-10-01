@@ -87,6 +87,8 @@ randstr - get random string from english upper and lower letters and numbers
 
 tputcolors - tput set console colors and text styles
 
+esccolors - ESC-codes set console text colors, backgrounds and text styles
+
 0x0.sh - script for posting to site 0x0.st
 
 0x0-insecure.sh -script 0x0.sh with disabled certificate check
