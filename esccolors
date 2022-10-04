@@ -28,7 +28,7 @@ echoc() #Text, color, background, attributes
 echocn() #Text, color, background, attributes
 {
     if [ -z "$2" ];then
-	echo "$1" 
+	echo  -n "$1" 
 	return 
     fi
     
