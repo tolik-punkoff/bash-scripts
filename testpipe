@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -t 1 ];then
+    echo -e "\x1b[32;1mRun in terminal\x1b[0m"
+else
+    echo "Run in pipe"
+fi

@@ -89,6 +89,8 @@ tputcolors - tput set console colors and text styles
 
 esccolors - ESC-codes set console text colors, backgrounds and text styles
 
+testpipe - Test script detecting if running on terminal or in pipe
+
 0x0.sh - script for posting to site 0x0.st
 
 0x0-insecure.sh -script 0x0.sh with disabled certificate check
