@@ -47,6 +47,8 @@ check-integer-number-v1 - check integer positive numbers in bash variables examp
 
 check-integer-number-v2 - check integer positive and negative numbers in bash variables example
 
+check-integer-number-v3 - check integer positive and negative numbers in bash variables example no use regular expression
+
 countdown, countdown2, waiter - countdowns on bash scripts
 
 createiso - create bootable ISO file

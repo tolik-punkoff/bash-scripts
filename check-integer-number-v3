@@ -1,0 +1,26 @@
+#!/bin/bash
+
+is_num() #$1 - test string,  return 0 - number 1 - not number
+{
+    let "TESTRES=$1*1" >/dev/null
+    
+    if [ -z "$TESTRES" ]; then
+	return 1
+    else
+	return 0
+    fi
+}
+
+if [ -z "$1" ]; then
+    echo "Use " `basename $0` "<string>"
+    exit
+fi
+
+is_num "$1"
+R="$?"
+
+if [ "$R" -eq 0 ]; then
+    echo "Number!"
+else
+    echo "Not number!"
+fi
