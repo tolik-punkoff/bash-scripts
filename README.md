@@ -97,4 +97,6 @@ testpipe - Test script detecting if running on terminal or in pipe
 
 0x0-insecure.sh -script 0x0.sh with disabled certificate check
 
+dumpfile - create text file with hex strings for raw binary file
+
 old - old, no optimal and archive scripts
